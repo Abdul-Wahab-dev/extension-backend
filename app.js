@@ -3,6 +3,8 @@ const morgan = require("morgan");
 // const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
+const globalErrorHandler = require("./controllers/errorController");
+
 const hpp = require("hpp");
 const cors = require("cors");
 const compression = require("compression");
@@ -39,6 +41,9 @@ app.use(xss());
 // prevent parameter pollution
 app.use(hpp());
 // 2) Routes
+app.get("/api/v1/health", (req, res) => {
+  res.send("hello");
+});
 app.use("/api/v1/users", userRoutes);
 
 app.use(globalErrorHandler);
