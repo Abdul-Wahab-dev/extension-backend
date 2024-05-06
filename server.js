@@ -11,11 +11,7 @@ process.on("uncaughtException", (err) => {
 });
 
 mongoose
-  .connect(process.env.DATABASE, {
-    useNewUrlParser: true,
-    // useCreateIndex: true,
-    // useFindAndModify: false,
-  })
+  .connect(process.env.DATABASE)
   .then(() => console.log("DATEBASE CONNECTED!"))
   .catch((err) => console.log(err));
 

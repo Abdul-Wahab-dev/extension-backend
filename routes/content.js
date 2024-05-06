@@ -1,0 +1,19 @@
+const express = require("express");
+const {
+  createContent,
+  getAllContent,
+  updateContent,
+  deleteContent,
+} = require("../controllers/content");
+
+const router = express.Router();
+
+router.route("/").post(createContent).get(getAllContent);
+
+router.route("/:id").put(updateContent).delete(deleteContent);
+
+router.route("/test").get((req, res) => {
+  res.send("Everything alright!");
+});
+
+module.exports = router;

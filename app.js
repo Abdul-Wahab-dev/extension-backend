@@ -10,6 +10,7 @@ const cors = require("cors");
 const compression = require("compression");
 const app = express();
 const userRoutes = require("./routes/user");
+const contentRouter = require("./routes/content");
 
 // 1) GLOBAL MIDDLLEWARES
 // set security HTTP headers
@@ -45,6 +46,7 @@ app.get("/api/v1/health", (req, res) => {
   res.send("hello");
 });
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/content", contentRouter);
 
 app.use(globalErrorHandler);
 
