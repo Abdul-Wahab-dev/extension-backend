@@ -7,7 +7,6 @@ const { Content } = require("../models/Content");
 // @access                  Private
 exports.createContent = catchAsync(async (req, res, next) => {
   const { content, hash, url } = req.body;
-
   const newContent = await Content.create({
     content,
     hash,

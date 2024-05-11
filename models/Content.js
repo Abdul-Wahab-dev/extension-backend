@@ -17,7 +17,7 @@ const contentSchema = new Schema(
     },
     temp: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {
