@@ -6,11 +6,12 @@ const { Content } = require("../models/Content");
 // @desc                    create content
 // @access                  Private
 exports.createContent = catchAsync(async (req, res, next) => {
-  const { content, hash, url } = req.body;
+  const { content, hash, url, domain } = req.body;
   const newContent = await Content.create({
     content,
     hash,
     url,
+    domain,
   });
 
   if (!newContent) {
