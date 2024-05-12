@@ -19,6 +19,9 @@ const contentSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    domain: {
+      type: String,
+    },
   },
   {
     timestamps: {
