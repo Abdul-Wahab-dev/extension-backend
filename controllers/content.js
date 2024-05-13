@@ -27,7 +27,10 @@ exports.createContent = catchAsync(async (req, res, next) => {
 // @desc                    get all content
 // @access                  Private
 exports.getAllContent = catchAsync(async (req, res, next) => {
-  let contents = await Content.find({});
+  const { domain } = req.query;
+  let contents = null;
+  if (domain) contents = await Content.find({ domain });
+  else contents = await Content.find({});
   if (!contents) {
     return next(new AppError("Cannot find any record"), 400, null);
   }
@@ -76,5 +79,31 @@ exports.deleteContent = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     content: updatedContent,
+  });
+});
+
+// @route                   GET /api/v1/content/domain
+// @desc                    get all content domains
+// @access                  Private
+exports.getAllContentDomains = catchAsync(async (req, res, next) => {
+  let domains = await Content.aggregate([
+    {
+      $group: {
+        _id: "$domain",
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        domain: "$_id",
+      },
+    },
+  ]);
+  if (!domains) {
+    return next(new AppError("Cannot find any record"), 400, null);
+  }
+
+  res.status(200).json({
+    domains,
   });
 });

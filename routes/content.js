@@ -4,6 +4,7 @@ const {
   getAllContent,
   updateContent,
   deleteContent,
+  getAllContentDomains,
 } = require("../controllers/content");
 
 const router = express.Router();
@@ -11,7 +12,7 @@ const router = express.Router();
 router.route("/").post(createContent).get(getAllContent);
 
 router.route("/:id").put(updateContent).delete(deleteContent);
-
+router.route("/domain").get(getAllContentDomains);
 router.route("/test").get((req, res) => {
   res.send("Everything alright!");
 });
