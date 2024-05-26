@@ -6,38 +6,45 @@ const crypto = require("crypto");
 const Validator = require("validator");
 const isEmpty = require("../validation/is-empty");
 const APIFeature = require("../utils/apiFeatures");
-const validateRegisterInput = require("../validation/register");
+const adminAuth = require("../firebase/firebaseAdmin");
+// const validateRegisterInput = require("../validation/register");
 const { OAuth2Client } = require("google-auth-library");
 const { promisify } = require("util");
 const sendEmail = require("../utils/email");
+const admin = require("../firebase/firebaseAdmin");
 
 // @route               POST /api/v1/user/signup
 // @desc                create new user
 // @access              Public
 exports.signup = catchAsync(async (req, res, next) => {
-  const { errors, isValid } = validateRegisterInput(req.body);
+  const { uid, email } = req.body;
 
   // Check Validation
-  if (!isValid) {
-    return next(new AppError(`Fields Required`, 400, errors));
+  if (!uid || !email) {
+    return next(new AppError(`Fields Required`, 400, null));
   }
 
   // check user exist with is email or not
 
-  const existUser = await User.findOne({ email: req.body.email });
+  // const existUser = await User.findOne({ email });
 
-  if (existUser) {
-    return next(
-      new AppError("User already exist with this E-mail", 400, undefined)
-    );
-  }
-  const user = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    contact: req.body.contact,
-  });
+  // if (existUser) {
+  //   return next(
+  //     new AppError("User already exist with this E-mail", 400, undefined)
+  //   );
+  // }
+  const user = await User.findOneAndUpdate(
+    {
+      uid: uid,
+    },
+    {
+      email,
+      uid,
+    },
+    {
+      upsert: true,
+    }
+  );
 
   res.status(201).json({
     status: "success",
@@ -50,36 +57,53 @@ exports.signup = catchAsync(async (req, res, next) => {
 // @desc                login user
 // @access              Public
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { uid, email } = req.body;
   // 1) check if email and password exist
-  if (!email || !password) {
-    return next(
-      new AppError("email and password is required!", 400, undefined)
-    );
+  if (!email || !uid) {
+    return next(new AppError("email and uid is required!", 400, undefined));
   }
   // 2) check if user exist and password is correct
   const user = await User.findOne({ email }).select("+password");
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(
-      new AppError("username or password incorrect!", 400, undefined)
-    );
-  }
   // 3) check user blocked or not
-  if (!user || user.blocked === true) {
-    return next(new AppError("user blocked!", 400, undefined));
-  }
+  // if (!user || user.blocked === true) {
+  //   return next(new AppError("user blocked!", 400, undefined));
+  // }
   // 4) if everything OK then send token to user
-  const token = await jwt.sign(
-    { id: user._id, name: user.name, role: user.role },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "7d",
-    }
-  );
+  // const token = await jwt.sign(
+  //   { id: user._id, name: user.name, role: user.role },
+  //   process.env.JWT_SECRET,
+  //   {
+  //     expiresIn: "7d",
+  //   }
+  // );
 
   res.status(200).json({
     status: "success",
-    token,
+  });
+});
+
+// @route                   GET /api/v1/users/custom-token
+// @desc                    get custom token
+// @access                  private
+exports.getCustomToken = catchAsync(async (req, res, next) => {
+  let token;
+  // 1) getting token and check if token exist
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  } else {
+    return next(new AppError("unauthorized user", 401, undefined));
+  }
+
+  const uid = (await adminAuth.verifyIdToken(token)).uid;
+  if (!uid) return next(new AppError("Invalid token", 400, undefined));
+
+  const customToken = await adminAuth.createCustomToken(uid);
+
+  return res.status(200).json({
+    token: customToken,
   });
 });
 
@@ -427,3 +451,19 @@ exports.deletedUser = catchAsync(async (req, res, next) => {
     user,
   });
 });
+
+exports.verifyToken = async (req, res, next) => {
+  const idToken = req.headers.authorization?.split("Bearer ")[1];
+
+  if (!idToken) {
+    return res.status(401).send("Unauthorized");
+  }
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.user = decodedToken;
+    next();
+  } catch (error) {
+    return res.status(401).send("Unauthorized");
+  }
+};
