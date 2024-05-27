@@ -7,9 +7,8 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
   name: {
     type: String,
-    required: [true, "name field is required"],
   },
-  contact: {
+  uid: {
     type: String,
   },
   email: {
@@ -19,36 +18,14 @@ const userSchema = new Schema({
     lowercase: true,
     validate: [validator.isEmail, "please provide valid email"],
   },
-  password: {
-    type: String,
-    required: [true, "password field is required"],
-    minlength: 8,
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, "passwordConfirm field is required"],
-    validate: {
-      validator: function (el) {
-        return el === this.password;
-      },
-      message: "passwords are not same!",
-    },
-  },
 
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
-  profile: String,
   role: {
     type: String,
     required: true,
     default: "user",
-  },
-  account: {
-    blocked: Boolean,
-    deactivated: Boolean,
-    deleted: Boolean,
   },
   deleted: {
     type: Boolean,
