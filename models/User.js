@@ -18,7 +18,7 @@ const userSchema = new Schema({
     lowercase: true,
     validate: [validator.isEmail, "please provide valid email"],
   },
-
+  password: String,
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,

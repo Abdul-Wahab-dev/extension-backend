@@ -11,75 +11,153 @@ const adminAuth = require("../firebase/firebaseAdmin");
 const { OAuth2Client } = require("google-auth-library");
 const { promisify } = require("util");
 const sendEmail = require("../utils/email");
-const admin = require("../firebase/firebaseAdmin");
-
+const { generateJwtToken } = require("../utils/generateToken");
+const { oauthClient } = require("../config/oauth");
+const { serialize } = require("cookie");
 // @route               POST /api/v1/user/signup
 // @desc                create new user
 // @access              Public
 exports.signup = catchAsync(async (req, res, next) => {
-  const { uid, email } = req.body;
+  console.log(req.body, "req.body");
+  const { name, email, password } = req.body;
 
   // Check Validation
-  if (!uid || !email) {
+  if (!name || !email || !password) {
     return next(new AppError(`Fields Required`, 400, null));
   }
 
   // check user exist with is email or not
+  const existUser = await User.findOne({ email });
 
-  // const existUser = await User.findOne({ email });
-
-  // if (existUser) {
-  //   return next(
-  //     new AppError("User already exist with this E-mail", 400, undefined)
-  //   );
-  // }
-  const user = await User.findOneAndUpdate(
-    {
-      uid: uid,
-    },
-    {
-      email,
-      uid,
-    },
-    {
-      upsert: true,
-    }
-  );
+  if (existUser) {
+    return next(
+      new AppError("User already exist with this E-mail", 400, undefined)
+    );
+  }
+  const user = await User.create({
+    email,
+    name,
+    password,
+  });
+  if (!user) {
+    throw new AppError("Failed to create a user", 400, null);
+  }
 
   res.status(201).json({
-    status: "success",
-    data: {
-      user,
-    },
+    user,
   });
 });
 // @route               POST /api/v1/user/login
 // @desc                login user
 // @access              Public
 exports.login = catchAsync(async (req, res, next) => {
-  const { uid, email } = req.body;
+  const { email, password } = req.body;
+  console.log("hello");
   // 1) check if email and password exist
-  if (!email || !uid) {
+  if (!email || !password) {
     return next(new AppError("email and uid is required!", 400, undefined));
   }
   // 2) check if user exist and password is correct
   const user = await User.findOne({ email }).select("+password");
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(
+      new AppError("username or password incorrect!", 400, undefined)
+    );
+  }
   // 3) check user blocked or not
   // if (!user || user.blocked === true) {
   //   return next(new AppError("user blocked!", 400, undefined));
   // }
   // 4) if everything OK then send token to user
-  // const token = await jwt.sign(
-  //   { id: user._id, name: user.name, role: user.role },
-  //   process.env.JWT_SECRET,
-  //   {
-  //     expiresIn: "7d",
-  //   }
-  // );
+  const token = generateJwtToken(
+    { id: user.id, name: user.name, email: user.email },
+    "7d"
+  );
+
+  res.setHeader(
+    "Set-Cookie",
+    serialize("authorization", `Bearer ${token}`, {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    })
+  );
 
   res.status(200).json({
-    status: "success",
+    token,
   });
+});
+
+// @route               POST /api/v1/user/google-login
+// @desc                generate google login url
+// @access              Public
+exports.googleLogin = catchAsync(async (req, res) => {
+  const { return_uri } = req.query;
+
+  const stateObj = {
+    return_uri,
+  };
+  const authUrl = oauthClient.generateAuthUrl({
+    access_type: "online",
+    prompt: "consent",
+    response_type: "code",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ],
+    redirect_uri: process.env.REDIRECT_URL,
+    state: JSON.stringify(stateObj),
+  });
+
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  return res.status(200).json({ url: authUrl });
+});
+
+exports.googleAuthCallback = catchAsync(async (req, res) => {
+  const code = await req.query;
+  const { state } = await req.query;
+  const parsedState = JSON.parse(state);
+
+  if (!code) {
+    throw new AppError("code is required");
+  }
+
+  const { tokens } = await oauthClient.getToken(code);
+  const { payload } = await oauthClient.verifyIdToken({
+    idToken: tokens.id_token,
+  });
+
+  const email = payload.email;
+  const firstName = payload.given_name;
+  const lastName = payload.family_name;
+
+  // Check if user already exists
+  let user = await User.findOne({
+    email,
+  });
+
+  if (!user) {
+    user = await User.create({
+      email,
+      name: firstName + " " + lastName,
+    });
+    // sending welcome email
+  }
+
+  const token = generateJwtToken(
+    {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    },
+    "7d"
+  );
+
+  // const profiles = await fetchProfiles();
+  let redirect_uri = `${process.env.NEXT_PUBLIC_BASE_URL}?idToken=${token}`;
+
+  return res.redirect(307, redirect_uri);
 });
 
 // @route                   GET /api/v1/users/custom-token
@@ -116,7 +194,7 @@ const client = new OAuth2Client(
 // @access                Public
 exports.loginWithGoogle = catchAsync(async (req, res, next) => {
   // check token
-  const tokenVerify = await client.verifyIdToken({
+  const tokenVerify = await oauthClient.verifyIdToken({
     idToken: req.body.token,
     audience:
       "532893321001-gefd5pi11rf25s8tkqd5n7er3phqcuu6.apps.googleusercontent.com",
@@ -134,18 +212,9 @@ exports.loginWithGoogle = catchAsync(async (req, res, next) => {
       new AppError("username or password incorrect!", 400, undefined)
     );
   }
-  // 3) check user blocked or not
-  if (!user || user.blocked === true) {
-    return next(new AppError("user blocked!", 400, undefined));
-  }
+
   // 4) if everything OK then send token to user
-  const token = await jwt.sign(
-    { id: user._id, name: user.name, role: user.role },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "7d",
-    }
-  );
+  const token = generateJwtToken;
 
   res.status(200).json({
     status: "success",
@@ -454,16 +523,17 @@ exports.deletedUser = catchAsync(async (req, res, next) => {
 
 exports.verifyToken = async (req, res, next) => {
   const idToken = req.headers.authorization?.split("Bearer ")[1];
-
+  console.log(idToken);
   if (!idToken) {
     return res.status(401).send("Unauthorized");
   }
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
     req.user = decodedToken;
     next();
   } catch (error) {
+    console.log({ error });
     return res.status(401).send("Unauthorized");
   }
 };

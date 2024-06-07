@@ -6,10 +6,10 @@ const {
   deleteContent,
   getAllContentDomains,
 } = require("../controllers/content");
-
+const { protect } = require("../controllers/authController");
 const router = express.Router();
 
-router.route("/").post(createContent).get(getAllContent);
+router.route("/").post(createContent).get(protect, getAllContent);
 
 router.route("/:id").put(updateContent).delete(deleteContent);
 router.route("/domain").get(getAllContentDomains);

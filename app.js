@@ -25,7 +25,12 @@ const contentRouter = require("./routes/content");
 //     },
 //   })
 // );
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
 // Development logging
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
