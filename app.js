@@ -28,7 +28,7 @@ const contentRouter = require("./routes/content");
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: "*",
   })
 );
 // Development logging

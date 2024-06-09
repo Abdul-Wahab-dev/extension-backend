@@ -12,6 +12,7 @@ exports.createContent = catchAsync(async (req, res, next) => {
     hash,
     url,
     domain,
+    user: req.user._id,
   });
 
   if (!newContent) {
@@ -29,12 +30,15 @@ exports.createContent = catchAsync(async (req, res, next) => {
 exports.getAllContent = catchAsync(async (req, res, next) => {
   const { domain } = req.query;
   let contents = null;
-  if (domain) contents = await Content.find({ domain });
-  else contents = await Content.find({});
+  if (domain) contents = await Content.find({ domain, user: req.user._id });
+  else contents = await Content.find({ user: req.user._id });
+
   if (!contents) {
-    return next(new AppError("Cannot find any record"), 400, null);
+    return res.status(200).json({
+      contents: [],
+    });
   }
-  res.status(200).json({
+  return res.status(200).json({
     contents,
   });
 });
@@ -46,8 +50,11 @@ exports.updateContent = catchAsync(async (req, res, next) => {
   const { content, hash } = req.body;
   const { id } = req.params;
 
-  const updatedContent = await Content.findByIdAndUpdate(
-    id,
+  const updatedContent = await Content.findOneAndUpdate(
+    {
+      _id: id,
+      user: req.user.id,
+    },
     {
       content,
       hash,
@@ -72,7 +79,10 @@ exports.updateContent = catchAsync(async (req, res, next) => {
 exports.deleteContent = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-  const updatedContent = await Content.findByIdAndDelete(id);
+  const updatedContent = await Content.findOneAndDelete({
+    user: req.user._id,
+    _id: id,
+  });
   if (!updatedContent) {
     return next(new AppError("Failed to update the content", 400, null));
   }
@@ -87,6 +97,11 @@ exports.deleteContent = catchAsync(async (req, res, next) => {
 // @access                  Private
 exports.getAllContentDomains = catchAsync(async (req, res, next) => {
   let domains = await Content.aggregate([
+    {
+      $match: {
+        user: req.user._id,
+      },
+    },
     {
       $group: {
         _id: "$domain",
