@@ -115,7 +115,9 @@ exports.getAllContentDomains = catchAsync(async (req, res, next) => {
     },
   ]);
   if (!domains) {
-    return next(new AppError("Cannot find any record"), 400, null);
+    return res.status(200).json({
+      domains: [],
+    });
   }
 
   res.status(200).json({
