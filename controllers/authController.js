@@ -519,6 +519,22 @@ exports.deletedUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// @route                   POST /api/v1/users/logout
+// @desc                    logout current user
+// @access                  Private
+exports.userLogout = catchAsync(async (req, res) => {
+  res.setHeader(
+    "Set-Cookie",
+    serialize("authorization", ``, {
+      httpOnly: true,
+      maxAge: 0,
+      path: "/",
+    })
+  );
+  res.status(200).json({
+    success: true,
+  });
+});
 exports.verifyToken = async (req, res, next) => {
   const idToken = req.headers.authorization?.split("Bearer ")[1];
   console.log(idToken);
