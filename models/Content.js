@@ -22,6 +22,10 @@ const contentSchema = new Schema(
     domain: {
       type: String,
     },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      required: [true, "User is required"],
+    },
   },
   {
     timestamps: {

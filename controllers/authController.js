@@ -18,7 +18,6 @@ const { serialize } = require("cookie");
 // @desc                create new user
 // @access              Public
 exports.signup = catchAsync(async (req, res, next) => {
-  console.log(req.body, "req.body");
   const { name, email, password } = req.body;
 
   // Check Validation
@@ -52,7 +51,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 // @access              Public
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("hello");
+
   // 1) check if email and password exist
   if (!email || !password) {
     return next(new AppError("email and uid is required!", 400, undefined));
@@ -260,7 +259,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   // 3) check user still exist
-  const currentUser = await User.findById(decode.id).select("-__v -contact");
+  const currentUser = await User.findById(decode.id).select(
+    "-__v -contact -password"
+  );
   if (!currentUser) {
     return next(new AppError("User not exist", 404));
   }
@@ -297,10 +298,7 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
     next(new AppError("user not found or not logged in", 401, undefined));
   }
   res.status(200).json({
-    status: "success",
-    data: {
-      user: currentUser,
-    },
+    user: currentUser,
   });
 });
 // @route         POST /api/v1/user/forgetPassword
@@ -521,6 +519,22 @@ exports.deletedUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// @route                   POST /api/v1/users/logout
+// @desc                    logout current user
+// @access                  Private
+exports.userLogout = catchAsync(async (req, res) => {
+  res.setHeader(
+    "Set-Cookie",
+    serialize("authorization", ``, {
+      httpOnly: true,
+      maxAge: 0,
+      path: "/",
+    })
+  );
+  res.status(200).json({
+    success: true,
+  });
+});
 exports.verifyToken = async (req, res, next) => {
   const idToken = req.headers.authorization?.split("Bearer ")[1];
   console.log(idToken);
