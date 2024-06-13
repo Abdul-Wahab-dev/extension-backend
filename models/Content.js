@@ -26,6 +26,13 @@ const contentSchema = new Schema(
       type: mongoose.Schema.ObjectId,
       required: [true, "User is required"],
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    collections: {
+      type: [mongoose.Schema.ObjectId],
+    },
   },
   {
     timestamps: {
