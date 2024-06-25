@@ -47,7 +47,7 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
 // @desc                    update content
 // @access                  Private
 exports.updateContent = catchAsync(async (req, res, next) => {
-  const { content, hash } = req.body;
+  const { content, collections, hash } = req.body;
   const { id } = req.params;
 
   const updatedContent = await Content.findOneAndUpdate(
@@ -57,6 +57,7 @@ exports.updateContent = catchAsync(async (req, res, next) => {
     },
     {
       content,
+      collections,
       hash,
     },
     {
@@ -78,10 +79,13 @@ exports.updateContent = catchAsync(async (req, res, next) => {
 // @access                  Private
 exports.deleteContent = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-
-  const updatedContent = await Content.findOneAndDelete({
-    user: req.user._id,
-    _id: id,
+  if (!id) {
+    return next(
+      new AppError("Unique is required to delete the content", 400, null)
+    );
+  }
+  const updatedContent = await Content.findByIdAndUpdate(id, {
+    disabled: true,
   });
   if (!updatedContent) {
     return next(new AppError("Failed to update the content", 400, null));

@@ -10,6 +10,7 @@ const cors = require("cors");
 const compression = require("compression");
 const app = express();
 const userRoutes = require("./routes/user");
+const customCollectionRouter = require("./routes/customCollection");
 const contentRouter = require("./routes/content");
 
 // 1) GLOBAL MIDDLLEWARES
@@ -52,6 +53,7 @@ app.get("/api/v1/health", (req, res) => {
 });
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/content", contentRouter);
+app.use("/api/v1/collection", customCollectionRouter);
 
 app.use(globalErrorHandler);
 
