@@ -8,6 +8,7 @@ const { Content } = require("../models/Content");
 // @access                  Private
 exports.createCollection = catchAsync(async (req, res, next) => {
   const { title, domains } = req.body;
+
   if (!title) {
     return next(
       new AppError("Fields required", 400, { title: "title is required" })
@@ -38,8 +39,13 @@ exports.getAllCollections = catchAsync(async (req, res, next) => {
     collections = await CustomCollection.find({
       sites: domain,
       user: req.user._id,
+      disabled: false,
     });
-  else collections = await CustomCollection.find({ user: req.user._id });
+  else
+    collections = await CustomCollection.find({
+      user: req.user._id,
+      disabled: false,
+    });
 
   if (!collections) {
     return res.status(200).json({
@@ -48,6 +54,25 @@ exports.getAllCollections = catchAsync(async (req, res, next) => {
   }
   return res.status(200).json({
     collections,
+  });
+});
+// @route                   GET /api/v1/collection/:id
+// @desc                    get collection by id
+// @access                  Private
+exports.getCollectionById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!id) return new AppError("unique id is required", 400, null);
+
+  let collection = await CustomCollection.findOne({
+    user: req.user._id,
+    _id: id,
+  }).populate("contents");
+
+  if (!collection)
+    return new AppError("no record found with this id", 404, null);
+  return res.status(200).json({
+    collection,
   });
 });
 
@@ -99,7 +124,7 @@ exports.deleteCollection = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json({
-    content: updatedContent,
+    collection: updatedContent,
   });
 });
 

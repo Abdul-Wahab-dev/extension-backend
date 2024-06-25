@@ -24,8 +24,20 @@ const customCollectionSchema = new Schema(
       createdAt: "created_at",
       updatedAt: "updated_at",
     },
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
   }
 );
+
+customCollectionSchema.virtual("contents", {
+  ref: "content",
+  foreignField: "collections",
+  localField: "_id",
+});
 
 exports.CustomCollection = mongoose.model(
   "customCollection",

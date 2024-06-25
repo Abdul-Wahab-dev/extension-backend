@@ -47,7 +47,7 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
 // @desc                    update content
 // @access                  Private
 exports.updateContent = catchAsync(async (req, res, next) => {
-  const { content, hash } = req.body;
+  const { content, collections, hash } = req.body;
   const { id } = req.params;
 
   const updatedContent = await Content.findOneAndUpdate(
@@ -57,6 +57,7 @@ exports.updateContent = catchAsync(async (req, res, next) => {
     },
     {
       content,
+      collections,
       hash,
     },
     {
