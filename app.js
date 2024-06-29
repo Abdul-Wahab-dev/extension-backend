@@ -10,6 +10,7 @@ const cors = require("cors");
 const compression = require("compression");
 const app = express();
 const userRoutes = require("./routes/user");
+const settingRoutes = require("./routes/setting");
 const customCollectionRouter = require("./routes/customCollection");
 const contentRouter = require("./routes/content");
 
@@ -54,6 +55,7 @@ app.get("/api/v1/health", (req, res) => {
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/content", contentRouter);
 app.use("/api/v1/collection", customCollectionRouter);
+app.use("/api/v1/setting", settingRoutes);
 
 app.use(globalErrorHandler);
 
