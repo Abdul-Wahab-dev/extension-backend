@@ -1,4 +1,7 @@
 const User = require("../models/User");
+const { Content } = require("../models/Content");
+const { CustomCollection } = require("../models/CustomCollection");
+
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
@@ -293,12 +296,25 @@ exports.restrictTo = (...roles) => {
 // @desc          get current or logged in user
 // @access        Private
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
-  const currentUser = await User.findById(req.user.id).select("-__V");
+  const currentUser = await User.findById(req.user.id).select("-__v -password");
   if (!currentUser) {
     next(new AppError("user not found or not logged in", 401, undefined));
   }
+  const totalContent = await Content.countDocuments({
+    user: req.user._id,
+  });
+  const totalCollection = await CustomCollection.countDocuments({
+    user: req.user._id,
+  });
+
   res.status(200).json({
-    user: currentUser,
+    user: {
+      name: currentUser.name,
+      email: currentUser.email,
+      _id: currentUser._id,
+      totalCollection,
+      totalContent,
+    },
   });
 });
 // @route         POST /api/v1/user/forgetPassword
