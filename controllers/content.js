@@ -28,18 +28,39 @@ exports.createContent = catchAsync(async (req, res, next) => {
 // @desc                    get all content
 // @access                  Private
 exports.getAllContent = catchAsync(async (req, res, next) => {
-  const { domain } = req.query;
+  const { domain, page, limit } = req.query;
   let contents = null;
-  if (domain) contents = await Content.find({ domain, user: req.user._id });
-  else contents = await Content.find({ user: req.user._id });
+  console.log(page, "page");
+  const l_page = page * 1 || 1;
+  const l_limit = limit * 1 || 5;
+  const skip = (l_page - 1) * l_limit;
+
+  if (domain)
+    contents = await Content.find({ domain, user: req.user._id })
+      .skip(skip)
+      .limit(l_limit)
+      .sort("-created_at");
+  else
+    contents = await Content.find({ user: req.user._id })
+      .skip(skip)
+      .limit(l_limit)
+      .sort("-created_at");
+
+  let total = 0;
+
+  if (domain)
+    total = await Content.countDocuments({ domain, user: req.user._id });
+  else total = await Content.countDocuments({ user: req.user._id });
 
   if (!contents) {
     return res.status(200).json({
       contents: [],
+      total,
     });
   }
   return res.status(200).json({
     contents,
+    total,
   });
 });
 

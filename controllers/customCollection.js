@@ -33,16 +33,38 @@ exports.createCollection = catchAsync(async (req, res, next) => {
 // @desc                    get all collection
 // @access                  Private
 exports.getAllCollections = catchAsync(async (req, res, next) => {
-  const { domain } = req.query;
+  const { domain, page, limit } = req.query;
+  const l_page = page * 1 || 1;
+  const l_limit = limit * 1 || 6;
+  const skip = (l_page - 1) * l_limit;
   let collections = null;
   if (domain)
     collections = await CustomCollection.find({
       sites: domain,
       user: req.user._id,
       disabled: false,
-    });
+    })
+      .skip(skip)
+      .limit(l_limit)
+      .sort("-created_at");
   else
     collections = await CustomCollection.find({
+      user: req.user._id,
+      disabled: false,
+    })
+      .skip(skip)
+      .limit(l_limit)
+      .sort("-created_at");
+
+  let total = 0;
+  if (domain)
+    total = await CustomCollection.countDocuments({
+      sites: domain,
+      user: req.user._id,
+      disabled: false,
+    });
+  else
+    total = await CustomCollection.countDocuments({
       user: req.user._id,
       disabled: false,
     });
@@ -50,10 +72,12 @@ exports.getAllCollections = catchAsync(async (req, res, next) => {
   if (!collections) {
     return res.status(200).json({
       collections: [],
+      total,
     });
   }
   return res.status(200).json({
     collections,
+    total,
   });
 });
 // @route                   GET /api/v1/collection/:id
