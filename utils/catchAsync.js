@@ -4,6 +4,7 @@ module.exports = (fn) => {
       if (error.name === "TokenExpiredError") {
         error.statusCode = 401;
       }
+      console.log({ error });
       next(error);
     });
   };
