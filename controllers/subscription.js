@@ -50,6 +50,40 @@ exports.create = catchAsync(async (req, res) => {
   });
 });
 
+// @route                   POST /api/subscription/update
+// @desc                    update subscription
+// @access                  Private
+exports.update = catchAsync(async (req, res) => {
+  const { email, _id, customerId } = req.user;
+
+  const { priceId } = req.body;
+
+  // get the current user subscriptions
+  const subscriptionList = await stripe.subscriptions.list({
+    customer: customerId,
+  });
+
+  console.log(subscriptionList.data);
+
+  // if the subscripion is exist then update the subscription
+  if (subscriptionList.data[0]) {
+    const updatedSubscription = await stripe.subscriptions.update(
+      subscriptionList.data[0].id,
+      {
+        items: [
+          {
+            id: subscriptionList.data[0].items.data[0].id,
+            price: priceId,
+          },
+        ],
+        payment_behavior: "pending_if_incomplete",
+      }
+    );
+  }
+
+  return res.status(200).json({ success: true });
+});
+
 exports.createCustomerHelper = async (email) => {
   try {
     let customer;
@@ -176,7 +210,34 @@ exports.webook = async (req, res) => {
     case "customer.subscription.updated":
       // can
       console.log("Subscription updated!");
-      console.log(event.data);
+      if (event && event.data && event.data.object && event.data.object.id) {
+        const subscription = await stripe.subscriptions.retrieve(
+          event.data.object.id,
+          {
+            expand: ["plan.product"],
+          }
+        );
+
+        const plan = subscription.plan;
+        const user = await User.findOne({ customerId: subscription.customer });
+        if (user) {
+          // update the user package
+          const endDate = new Date(subscription.ended_at);
+
+          if (plan && plan.product)
+            await Package.findOneAndUpdate(
+              {
+                user: user._id,
+              },
+              {
+                plan: plan.product.name ?? "ERROR",
+                status: subscription.status,
+                subEndDate: `${endDate}`,
+                contentLimit: 40,
+              }
+            );
+        }
+      }
       break;
 
     case "customer.subscription.deleted":
