@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const { Content } = require("../models/Content");
 const { CustomCollection } = require("../models/CustomCollection");
-
+const { createCustomerHelper } = require("./subscription");
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
@@ -36,10 +36,12 @@ exports.signup = catchAsync(async (req, res, next) => {
       new AppError("User already exist with this E-mail", 400, undefined)
     );
   }
+  const customer = await createCustomerHelper(email);
   const user = await User.create({
     email,
     name,
     password,
+    customerId: customer.id,
   });
   if (!user) {
     throw new AppError("Failed to create a user", 400, null);
@@ -262,12 +264,11 @@ exports.protect = catchAsync(async (req, res, next) => {
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   // 3) check user still exist
-  const currentUser = await User.findById(decode.id).select(
-    "-__v -contact -password"
-  );
+  const currentUser = await User.findById(decode.id).select("-__v -password");
   if (!currentUser) {
     return next(new AppError("User not exist", 404));
   }
+
   // 4) check password does'nt change after the token issued
 
   if (currentUser.changedPassword(decode.iat)) {
@@ -277,7 +278,12 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // grant access to protected routes
-  req.user = currentUser;
+  req.user = {
+    _id: currentUser._id,
+    email: currentUser.email,
+    role: currentUser.role,
+    customerId: currentUser.customerId,
+  };
 
   next();
 });

@@ -38,6 +38,9 @@ const userSchema = new Schema({
     default: false,
     required: true,
   },
+  customerId: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
