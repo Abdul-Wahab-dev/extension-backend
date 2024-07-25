@@ -37,8 +37,8 @@ const billingPortalRouter = require("./routes/billingPortal");
 app.use(
   cors({
     credentials: true,
-    origin: "*",
-    // origin: "http://localhost:3000",
+    // origin: "*",
+    origin: "http://localhost:3000",
   })
 );
 // Development logging
