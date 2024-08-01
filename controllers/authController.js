@@ -91,6 +91,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     token,
+    user: user,
   });
 });
 
@@ -171,7 +172,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
   );
 
   let redirect_uri = `${state}`;
-
+  console.log(state);
   return res.redirect(307, redirect_uri);
 });
 
