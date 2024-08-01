@@ -35,7 +35,7 @@ exports.createCollection = catchAsync(async (req, res, next) => {
 exports.getAllCollections = catchAsync(async (req, res, next) => {
   const { domain, page, limit } = req.query;
   const l_page = page * 1 || 1;
-  const l_limit = limit * 1 || 6;
+  const l_limit = limit * 1 || 5;
   const skip = (l_page - 1) * l_limit;
   let collections = null;
   if (domain)
