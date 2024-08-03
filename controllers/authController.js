@@ -91,6 +91,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     token,
+    user: user,
   });
 });
 
@@ -112,7 +113,7 @@ exports.googleLogin = catchAsync(async (req, res) => {
       "https://www.googleapis.com/auth/userinfo.profile",
     ],
     redirect_uri: process.env.REDIRECT_URL,
-    state: JSON.stringify(stateObj),
+    state: return_uri,
   });
 
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -121,19 +122,18 @@ exports.googleLogin = catchAsync(async (req, res) => {
 });
 
 exports.googleAuthCallback = catchAsync(async (req, res) => {
-  const code = await req.query;
-  const { state } = await req.query;
-  const parsedState = JSON.parse(state);
+  const { code, state } = req.query;
 
   if (!code) {
-    throw new AppError("code is required");
+    throw new AppError("code is required", 400, null);
   }
 
   const { tokens } = await oauthClient.getToken(code);
+
   const { payload } = await oauthClient.verifyIdToken({
     idToken: tokens.id_token,
   });
-
+  console.log({ payload });
   const email = payload.email;
   const firstName = payload.given_name;
   const lastName = payload.family_name;
@@ -144,9 +144,11 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
   });
 
   if (!user) {
+    const customer = await createCustomerHelper(email);
     user = await User.create({
       email,
       name: firstName + " " + lastName,
+      customerId: customer.id,
     });
     // sending welcome email
   }
@@ -160,9 +162,17 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
     "7d"
   );
 
-  // const profiles = await fetchProfiles();
-  let redirect_uri = `${process.env.NEXT_PUBLIC_BASE_URL}?idToken=${token}`;
+  res.setHeader(
+    "Set-Cookie",
+    serialize("authorization", `Bearer ${token}`, {
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    })
+  );
 
+  let redirect_uri = `${state}`;
+  console.log(state);
   return res.redirect(307, redirect_uri);
 });
 
@@ -254,6 +264,7 @@ exports.verifyGoogleToken = catchAsync(async (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   // 1) getting token and check if token exist
+
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -262,6 +273,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   } else {
     return next(new AppError("unauthorized user", 401, undefined));
   }
+
   // 2) verify token
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
@@ -280,12 +292,8 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // grant access to protected routes
-  req.user = {
-    _id: currentUser._id,
-    email: currentUser.email,
-    role: currentUser.role,
-    customerId: currentUser.customerId,
-  };
+
+  req.user = currentUser;
 
   next();
 });
@@ -314,7 +322,6 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
   const totalCollection = await CustomCollection.countDocuments({
     user: req.user._id,
   });
-
   res.status(200).json({
     user: {
       name: currentUser.name,
