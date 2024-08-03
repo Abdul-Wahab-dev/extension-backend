@@ -10,7 +10,7 @@ router
   .route("/current-user")
   .get(authController.protect, authController.getCurrentUser);
 router.route("/google-login").get(authController.googleLogin);
-router.route("/custom-token").get(authController.getCustomToken);
+
 router.route("/logout").get(authController.userLogout);
 router.route("/google/callback").get(authController.googleAuthCallback);
 router.route("/test").get((req, res) => {
