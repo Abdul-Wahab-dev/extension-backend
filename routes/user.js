@@ -9,7 +9,7 @@ router.route("/login").post(authController.login);
 router
   .route("/current-user")
   .get(authController.protect, authController.getCurrentUser);
-router.route("/custom-token").get(authController.getCustomToken);
+
 router.route("/logout").get(authController.userLogout);
 router.route("/test").get((req, res) => {
   res.send(200);
