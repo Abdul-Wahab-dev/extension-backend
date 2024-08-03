@@ -34,13 +34,7 @@ const billingPortalRouter = require("./routes/billingPortal");
 //     },
 //   })
 // );
-app.use(
-  cors({
-    credentials: true,
-    // origin: "*",
-    origin: "http://localhost:3000",
-  })
-);
+app.use(cors());
 // Development logging
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
