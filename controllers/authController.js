@@ -9,7 +9,7 @@ const crypto = require("crypto");
 const Validator = require("validator");
 const isEmpty = require("../validation/is-empty");
 const APIFeature = require("../utils/apiFeatures");
-const adminAuth = require("../firebase/firebaseAdmin");
+
 // const validateRegisterInput = require("../validation/register");
 const { OAuth2Client } = require("google-auth-library");
 const { promisify } = require("util");
@@ -169,27 +169,27 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
 // @route                   GET /api/v1/users/custom-token
 // @desc                    get custom token
 // @access                  private
-exports.getCustomToken = catchAsync(async (req, res, next) => {
-  let token;
-  // 1) getting token and check if token exist
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  } else {
-    return next(new AppError("unauthorized user", 401, undefined));
-  }
+// exports.getCustomToken = catchAsync(async (req, res, next) => {
+//   let token;
+//   // 1) getting token and check if token exist
+//   if (
+//     req.headers.authorization &&
+//     req.headers.authorization.startsWith("Bearer")
+//   ) {
+//     token = req.headers.authorization.split(" ")[1];
+//   } else {
+//     return next(new AppError("unauthorized user", 401, undefined));
+//   }
 
-  const uid = (await adminAuth.verifyIdToken(token)).uid;
-  if (!uid) return next(new AppError("Invalid token", 400, undefined));
+//   const uid = (await adminAuth.verifyIdToken(token)).uid;
+//   if (!uid) return next(new AppError("Invalid token", 400, undefined));
 
-  const customToken = await adminAuth.createCustomToken(uid);
+//   const customToken = await adminAuth.createCustomToken(uid);
 
-  return res.status(200).json({
-    token: customToken,
-  });
-});
+//   return res.status(200).json({
+//     token: customToken,
+//   });
+// });
 
 const client = new OAuth2Client(
   "532893321001-gefd5pi11rf25s8tkqd5n7er3phqcuu6.apps.googleusercontent.com"
@@ -559,19 +559,20 @@ exports.userLogout = catchAsync(async (req, res) => {
     success: true,
   });
 });
-exports.verifyToken = async (req, res, next) => {
-  const idToken = req.headers.authorization?.split("Bearer ")[1];
-  console.log(idToken);
-  if (!idToken) {
-    return res.status(401).send("Unauthorized");
-  }
 
-  try {
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    req.user = decodedToken;
-    next();
-  } catch (error) {
-    console.log({ error });
-    return res.status(401).send("Unauthorized");
-  }
-};
+// exports.verifyToken = async (req, res, next) => {
+//   const idToken = req.headers.authorization?.split("Bearer ")[1];
+//   console.log(idToken);
+//   if (!idToken) {
+//     return res.status(401).send("Unauthorized");
+//   }
+
+//   try {
+//     const decodedToken = await adminAuth.verifyIdToken(idToken);
+//     req.user = decodedToken;
+//     next();
+//   } catch (error) {
+//     console.log({ error });
+//     return res.status(401).send("Unauthorized");
+//   }
+// };
