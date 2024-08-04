@@ -34,7 +34,11 @@ const billingPortalRouter = require("./routes/billingPortal");
 //     },
 //   })
 // );
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+  })
+);
 // Development logging
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
