@@ -86,6 +86,7 @@ exports.login = catchAsync(async (req, res, next) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
+      sameSite: "none",
     })
   );
 
@@ -168,6 +169,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
+      sameSite: "none",
     })
   );
 
@@ -560,6 +562,7 @@ exports.userLogout = catchAsync(async (req, res) => {
       httpOnly: true,
       maxAge: 0,
       path: "/",
+      sameSite: "none",
     })
   );
   res.status(200).json({
