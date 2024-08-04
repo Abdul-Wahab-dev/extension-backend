@@ -80,15 +80,15 @@ exports.login = catchAsync(async (req, res, next) => {
     "7d"
   );
 
-  res.setHeader(
-    "Set-Cookie",
-    serialize("authorization", `Bearer ${token}`, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-      sameSite: "none",
-    })
-  );
+  // res.setHeader(
+  //   "Set-Cookie",
+  //   serialize("authorization", `Bearer ${token}`, {
+  //     httpOnly: true,
+  //     maxAge: 60 * 60 * 24 * 7,
+  //     path: "/",
+  //     sameSite: "none",
+  //   })
+  // );
 
   res.status(200).json({
     token,
