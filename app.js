@@ -36,6 +36,7 @@ const billingPortalRouter = require("./routes/billingPortal");
 // );
 app.use(
   cors({
+    origin: ["http://localhost:3000", "http://proxy.toolefy.com"],
     credentials: true,
   })
 );
