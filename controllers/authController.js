@@ -86,6 +86,7 @@ exports.login = catchAsync(async (req, res, next) => {
       httpOnly: false,
       maxAge: 60 * 60 * 24 * 7,
       sameSite: "none",
+      path: "/",
     })
   );
 
@@ -167,7 +168,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
     serialize("authorization", `Bearer ${token}`, {
       httpOnly: false,
       maxAge: 60 * 60 * 24 * 7,
-
+      path: "/",
       sameSite: "none",
     })
   );
@@ -560,7 +561,7 @@ exports.userLogout = catchAsync(async (req, res) => {
     serialize("authorization", ``, {
       httpOnly: false,
       maxAge: 0,
-
+      path: "/",
       sameSite: "none",
     })
   );
