@@ -34,6 +34,12 @@ const billingPortalRouter = require("./routes/billingPortal");
 //     },
 //   })
 // );
+
+app.use("/", (req, res, next) => {
+  console.log(req.headers, "header");
+  console.log(req.headers.host, "host header");
+  next();
+});
 app.use(
   cors({
     origin: [

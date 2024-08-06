@@ -324,7 +324,7 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
   const totalCollection = await CustomCollection.countDocuments({
     user: req.user._id,
   });
-  res.status(200).json({
+  return res.status(200).json({
     user: {
       name: currentUser.name,
       email: currentUser.email,
