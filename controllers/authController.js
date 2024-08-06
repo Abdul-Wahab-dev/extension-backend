@@ -86,7 +86,7 @@ exports.login = catchAsync(async (req, res, next) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
-      domain: "flexisaves.web.toolefy.com",
+      domain: ".toolefy.com",
     })
   );
 
@@ -169,7 +169,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
-      domain: "flexisaves.web.toolefy.com",
+      domain: ".toolefy.com",
     })
   );
 
@@ -561,9 +561,8 @@ exports.userLogout = catchAsync(async (req, res) => {
     serialize("authorization", ``, {
       httpOnly: true,
       maxAge: 0,
-      secure: true,
       path: "/",
-      domain: "flexisaves.web.toolefy.com",
+      domain: ".toolefy.com",
     })
   );
   res.status(200).json({
