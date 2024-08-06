@@ -83,10 +83,8 @@ exports.login = catchAsync(async (req, res, next) => {
   res.setHeader(
     "Set-Cookie",
     serialize("authorization", `Bearer ${token}`, {
-      httpOnly: false,
-      secure: true,
+      httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
-      sameSite: "none",
       path: "/",
     })
   );
@@ -167,11 +165,9 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
   res.setHeader(
     "Set-Cookie",
     serialize("authorization", `Bearer ${token}`, {
-      httpOnly: false,
-      secure: true,
+      httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
-      sameSite: "none",
     })
   );
 
@@ -561,11 +557,10 @@ exports.userLogout = catchAsync(async (req, res) => {
   res.setHeader(
     "Set-Cookie",
     serialize("authorization", ``, {
-      httpOnly: false,
+      httpOnly: true,
       maxAge: 0,
       secure: true,
       path: "/",
-      sameSite: "none",
     })
   );
   res.status(200).json({
