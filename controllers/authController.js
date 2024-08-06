@@ -86,6 +86,7 @@ exports.login = catchAsync(async (req, res, next) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
+      domain: "https://flexisaves.web.toolefy.com",
     })
   );
 
@@ -168,6 +169,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
+      domain: "https://flexisaves.web.toolefy.com",
     })
   );
 
@@ -561,6 +563,7 @@ exports.userLogout = catchAsync(async (req, res) => {
       maxAge: 0,
       secure: true,
       path: "/",
+      domain: "https://flexisaves.web.toolefy.com",
     })
   );
   res.status(200).json({
