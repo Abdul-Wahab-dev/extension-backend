@@ -30,7 +30,7 @@ exports.createContent = catchAsync(async (req, res, next) => {
 exports.getAllContent = catchAsync(async (req, res, next) => {
   const { domain, page, limit } = req.query;
   let contents = null;
-  console.log(page, "page");
+
   const l_page = page * 1 || 1;
   const l_limit = limit * 1 || 5;
   const skip = (l_page - 1) * l_limit;

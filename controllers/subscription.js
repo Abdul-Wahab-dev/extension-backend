@@ -63,8 +63,6 @@ exports.update = catchAsync(async (req, res) => {
     customer: customerId,
   });
 
-  console.log(subscriptionList.data);
-
   // if the subscripion is exist then update the subscription
   if (subscriptionList.data[0]) {
     const updatedSubscription = await stripe.subscriptions.update(
@@ -203,7 +201,7 @@ exports.webook = async (req, res) => {
       console.log("Invoice payment failed!");
       // set subscription status to incomplete
       // can notify the customer
-      console.log(event.data);
+
       break;
 
     // Event when subscription is updated

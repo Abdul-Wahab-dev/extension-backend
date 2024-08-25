@@ -134,7 +134,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
   const { payload } = await oauthClient.verifyIdToken({
     idToken: tokens.id_token,
   });
-  console.log({ payload });
+
   const email = payload.email;
   const firstName = payload.given_name;
   const lastName = payload.family_name;
