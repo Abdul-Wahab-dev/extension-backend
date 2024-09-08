@@ -86,7 +86,7 @@ exports.login = catchAsync(async (req, res, next) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
-      domain: ".toolefy.com",
+      domain: "localhost",
     })
   );
 
@@ -169,7 +169,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
-      domain: ".toolefy.com",
+      domain: "localhost",
     })
   );
 
@@ -266,12 +266,14 @@ exports.verifyGoogleToken = catchAsync(async (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   // 1) getting token and check if token exist
-
   if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    req.cookies.authorization ||
+    (req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer"))
   ) {
-    token = req.headers.authorization.split(" ")[1];
+    token =
+      req.cookies.authorization.split(" ")[1] ||
+      req.headers.authorization.split(" ")[1];
   } else {
     return next(new AppError("unauthorized user", 401, undefined));
   }
@@ -562,7 +564,7 @@ exports.userLogout = catchAsync(async (req, res) => {
       httpOnly: true,
       maxAge: 0,
       path: "/",
-      domain: ".toolefy.com",
+      domain: "localhost",
     })
   );
   res.status(200).json({

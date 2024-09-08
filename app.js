@@ -1,16 +1,19 @@
 const express = require("express");
 const morgan = require("morgan");
+cookieParser = require("cookie-parser");
 // const helmet = require("helmet");
 const { rateLimit } = require("express-rate-limit");
 
 const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
+
 const globalErrorHandler = require("./controllers/errorController");
 
 const hpp = require("hpp");
 const cors = require("cors");
 const compression = require("compression");
 const app = express();
+app.use(cookieParser());
 const userRoutes = require("./routes/user");
 const settingRoutes = require("./routes/setting");
 const customCollectionRouter = require("./routes/customCollection");
@@ -34,7 +37,10 @@ const billingPortalRouter = require("./routes/billingPortal");
 //     },
 //   })
 // );
-
+app.use((req, res, next) => {
+  console.log(req.headers);
+  next();
+});
 app.use(
   cors({
     origin: [

@@ -14,7 +14,7 @@ exports.customerBillingPortal = catchAsync(async (req, res) => {
   if (customerId) {
     const billingPortal = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `http://localhost:8000/api/v1/test`,
+      return_url: `http://localhost:3000`,
     });
 
     res.status(200).json({

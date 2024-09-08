@@ -5,16 +5,22 @@ const { Payment } = require("../models/Payment");
 const AppError = require("../utils/appError");
 const User = require("../models/User");
 const { Package } = require("../models/Package");
+const { createCustomerHelper } = require("./customer/index");
 // @route                   POST /api/subscription
 // @desc                    create subscription
 // @access                  Private
 exports.create = catchAsync(async (req, res) => {
   const { email, _id } = req.user;
-
+  let customer = await createCustomerHelper(email);
   const { priceId } = req.body;
-
+  if (!priceId) {
+    throw new AppError("Price not found", 400, null);
+  }
+  if (!customer) {
+    throw new AppError("Customer not found", 400, null);
+  }
   const session = await stripe.checkout.sessions.create({
-    customer: req.user.customerId,
+    customer: customer.id,
     mode: "subscription",
     line_items: [
       {
@@ -22,8 +28,8 @@ exports.create = catchAsync(async (req, res) => {
         quantity: 1,
       },
     ],
-    success_url: "http://localhost:3000",
-    cancel_url: "http://localhost:3000",
+    success_url: "http://localhost:3000/success",
+    cancel_url: "http://localhost:3000/failed",
     expand: ["subscription"],
     metadata: {
       email,
@@ -45,6 +51,7 @@ exports.create = catchAsync(async (req, res) => {
     billingReason: "",
   });
 
+  await User.findByIdAndUpdate(_id, { customerId: customer.id });
   return res.json({
     session,
   });
