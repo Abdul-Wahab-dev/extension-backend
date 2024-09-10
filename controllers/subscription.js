@@ -196,6 +196,7 @@ exports.webook = async (req, res) => {
                 plan: plan.product.name ?? "ERROR",
                 status: subscription.status,
                 subEndDate: `${endDate}`,
+                planId: plan.id ?? "",
                 contentLimit: 20,
               }
             );
@@ -239,6 +240,7 @@ exports.webook = async (req, res) => {
                 status: subscription.status,
                 subEndDate: `${endDate}`,
                 contentLimit: 40,
+                planId: plan.id ?? "",
               }
             );
         }

@@ -17,6 +17,7 @@ const sendEmail = require("../utils/email");
 const { generateJwtToken } = require("../utils/generateToken");
 const { oauthClient } = require("../config/oauth");
 const { serialize } = require("cookie");
+const { Package } = require("../models/Package");
 // @route               POST /api/v1/user/signup
 // @desc                create new user
 // @access              Public
@@ -326,6 +327,9 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
   const totalCollection = await CustomCollection.countDocuments({
     user: req.user._id,
   });
+  const package = await Package.findOne({
+    user: req.user._id,
+  });
   return res.status(200).json({
     user: {
       name: currentUser.name,
@@ -333,6 +337,7 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
       _id: currentUser._id,
       totalCollection,
       totalContent,
+      package,
     },
   });
 });
