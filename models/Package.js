@@ -10,9 +10,19 @@ const paymentSchema = new Schema(
       type: mongoose.Schema.ObjectId,
       required: [true, "User is required"],
     },
+    planId: {
+      type: String,
+    },
     contentLimit: {
       type: Number,
       required: [true, "Limit is required"],
+    },
+    collectionLimit: {
+      type: Number,
+      required: [true, "Collection limit is required"],
+    },
+    planId: {
+      type: String,
     },
     subEndDate: {
       type: String,
