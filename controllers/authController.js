@@ -267,14 +267,19 @@ exports.verifyGoogleToken = catchAsync(async (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   // 1) getting token and check if token exist
+
   if (
-    req.cookies.authorization ||
-    (req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer"))
+    req.cookies &&
+    req.cookies.authorization &&
+    req.cookies.authorization.split(" ") &&
+    req.cookies.authorization.split(" ").length > 0
   ) {
-    token =
-      req.cookies.authorization.split(" ")[1] ||
-      req.headers.authorization.split(" ")[1];
+    token = req.cookies.authorization.split(" ")[1];
+  } else if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
   } else {
     return next(new AppError("unauthorized user", 401, undefined));
   }
