@@ -23,7 +23,7 @@ const subscriptionRouter = require("./routes/subscription");
 const packageRouter = require("./routes/package");
 const webhookRouter = require("./routes/webhook");
 const billingPortalRouter = require("./routes/billingPortal");
-
+const contactRouter = require("./routes/contact");
 // 1) GLOBAL MIDDLLEWARES
 // set security HTTP headers
 // app.use(
@@ -48,6 +48,7 @@ app.use(
       "https://flexisaves.toolefy.com",
       "https://flexisaves.web.toolefy.com",
       "https://proxy.toolefy.com",
+      "http://3.141.101.121",
     ],
     credentials: true,
   })
@@ -88,6 +89,7 @@ app.use("/api/v1/subscription", subscriptionRouter);
 app.use("/api/v1/package", packageRouter);
 app.use("/payment", webhookRouter);
 app.use("/api/v1/billing-portal", billingPortalRouter);
+app.use("/api/v1/contact", contactRouter);
 
 app.use(globalErrorHandler);
 
