@@ -46,6 +46,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "https://flexisaves.toolefy.com",
+      "http://flexisaves.toolefy.com",
       "https://flexisaves.web.toolefy.com",
       "https://proxy.toolefy.com",
       "http://3.141.101.121",
