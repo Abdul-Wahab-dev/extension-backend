@@ -7,6 +7,7 @@ const { Content } = require("../models/Content");
 // @access                  Private
 exports.createContent = catchAsync(async (req, res, next) => {
   const { content, hash, url, domain } = req.body;
+
   const newContent = await Content.create({
     content,
     hash,
@@ -29,28 +30,23 @@ exports.createContent = catchAsync(async (req, res, next) => {
 // @access                  Private
 exports.getAllContent = catchAsync(async (req, res, next) => {
   const { domain, page, limit } = req.query;
-  let contents = null;
 
   const l_page = page * 1 || 1;
   const l_limit = limit * 1 || 5;
   const skip = (l_page - 1) * l_limit;
+  const filters = {
+    user: req.user._id,
+    disabled: false,
+  };
+  if (domain) {
+    filters.domain = domain;
+  }
+  const contents = await Content.find(filters)
+    .skip(skip)
+    .limit(l_limit)
+    .sort("-created_at");
 
-  if (domain)
-    contents = await Content.find({ domain, user: req.user._id })
-      .skip(skip)
-      .limit(l_limit)
-      .sort("-created_at");
-  else
-    contents = await Content.find({ user: req.user._id })
-      .skip(skip)
-      .limit(l_limit)
-      .sort("-created_at");
-
-  let total = 0;
-
-  if (domain)
-    total = await Content.countDocuments({ domain, user: req.user._id });
-  else total = await Content.countDocuments({ user: req.user._id });
+  const total = await Content.countDocuments(filters);
 
   if (!contents) {
     return res.status(200).json({
@@ -125,6 +121,7 @@ exports.getAllContentDomains = catchAsync(async (req, res, next) => {
     {
       $match: {
         user: req.user._id,
+        disabled: false,
       },
     },
     {
@@ -147,5 +144,30 @@ exports.getAllContentDomains = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     domains,
+  });
+});
+
+// @route                   GET /api/v1/content/url/:url
+// @desc                    get all content that has the url
+// @access                  Private
+exports.getAllURLBaseContent = catchAsync(async (req, res, next) => {
+  const { url } = req.query;
+
+  if (!url) {
+    return res.status(200).json({
+      contents: [],
+    });
+  }
+
+  const contents = await Content.find({ disabled: false, url: url });
+
+  if (!contents || !contents.length) {
+    return res.status(200).json({
+      contents: [],
+    });
+  }
+
+  return res.status(200).json({
+    contents,
   });
 });
