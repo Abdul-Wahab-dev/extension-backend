@@ -173,7 +173,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
   );
 
   let redirect_uri = `${state}`;
-  console.log(state);
+
   return res.redirect(307, redirect_uri);
 });
 
@@ -214,9 +214,9 @@ exports.loginWithGoogle = catchAsync(async (req, res, next) => {
   const tokenVerify = await oauthClient.verifyIdToken({
     idToken: req.body.token,
     audience:
-      "532893321001-gefd5pi11rf25s8tkqd5n7er3phqcuu6.apps.googleusercontent.com",
+      "5328933atg64221001-gefd5asdy234pi11rf25s8tkqd5n7er3phqcuu6fds.apps.googleusercontent.com",
   });
-  // console.log(tokenVerify);
+
   if (!tokenVerify) {
     return next(new AppError("Bad request", 400, undefined));
   }
