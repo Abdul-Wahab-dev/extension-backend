@@ -37,10 +37,7 @@ const contactRouter = require("./routes/contact");
 //     },
 //   })
 // );
-app.use((req, res, next) => {
-  console.log(req.headers);
-  next();
-});
+
 app.use(
   cors({
     origin: [
@@ -74,6 +71,13 @@ app.use(express.urlencoded({ extended: true }));
 // data sanitization  against NoSQL query injection
 app.use(mongoSanitize());
 // data sanitization  against xss
+app.use((req, res, next) => {
+  if (req.body) {
+    const tempBody = JSON.stringify(req.body).replace(/</g, "{{}}");
+    req.body = JSON.parse(tempBody);
+  }
+  next();
+});
 app.use(xss());
 // prevent parameter pollution
 app.use(hpp());
