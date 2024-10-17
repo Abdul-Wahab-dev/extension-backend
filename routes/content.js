@@ -6,6 +6,7 @@ const {
   deleteContent,
   getAllContentDomains,
   getAllURLBaseContent,
+  getAllUrls,
 } = require("../controllers/content");
 const { protect } = require("../controllers/authController");
 const router = express.Router();
@@ -19,5 +20,6 @@ router.route("/test").get((req, res) => {
 });
 
 router.route("/url").get(protect, getAllURLBaseContent);
+router.route("/urls").get(protect, getAllUrls);
 
 module.exports = router;

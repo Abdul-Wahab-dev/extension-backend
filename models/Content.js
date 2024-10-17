@@ -32,6 +32,10 @@ const contentSchema = new Schema(
     },
     collections: {
       type: [mongoose.Schema.ObjectId],
+      ref: "customCollection",
+    },
+    shareWith: {
+      type: [String],
     },
   },
   {
@@ -39,7 +43,17 @@ const contentSchema = new Schema(
       createdAt: "created_at",
       updatedAt: "updated_at",
     },
+    toJSON: {
+      virtuals: true,
+    },
   }
 );
+
+contentSchema.virtual("sharedBy", {
+  foreignField: "_id",
+  localField: "user",
+  ref: "user",
+  justOne: true,
+});
 
 exports.Content = mongoose.model("content", contentSchema);

@@ -18,6 +18,9 @@ const customCollectionSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    shareWith: {
+      type: [String],
+    },
   },
   {
     timestamps: {
@@ -39,6 +42,12 @@ customCollectionSchema.virtual("contents", {
   localField: "_id",
 });
 
+customCollectionSchema.virtual("sharedBy", {
+  foreignField: "_id",
+  localField: "user",
+  ref: "user",
+  justOne: true,
+});
 exports.CustomCollection = mongoose.model(
   "customCollection",
   customCollectionSchema

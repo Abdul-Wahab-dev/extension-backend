@@ -320,7 +320,9 @@ exports.restrictTo = (...roles) => {
 // @desc          get current or logged in user
 // @access        Private
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
-  const currentUser = await User.findById(req.user.id).select("-__v -password");
+  const currentUser = await User.findById(req.user.id).select(
+    "-customerId -role -deleted -blocked -__v -password"
+  );
   if (!currentUser) {
     next(new AppError("user not found or not logged in", 401, undefined));
   }
@@ -514,7 +516,9 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 // @desc                    get user by id
 // @access                  admin-only
 exports.getUserById = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findById(req.params.id).select(
+    "-customerId -role -deleted -blocked -__v"
+  );
   if (!user) {
     return next(new AppError("User not found", 404, undefined));
   }
@@ -533,7 +537,7 @@ exports.blockedUser = catchAsync(async (req, res, next) => {
     req.params.id,
     { blocked: req.body.blocked },
     { new: true, runValidators: true }
-  );
+  ).select("-customerId -role -deleted -blocked -__v");
   if (!user) {
     return next(new AppError("user not found", 404, undefined));
   }
@@ -551,7 +555,7 @@ exports.deletedUser = catchAsync(async (req, res, next) => {
     req.params.id,
     { deleted: req.body.blocked },
     { new: true, runValidators: true }
-  );
+  ).select("-customerId -role -deleted -blocked -__v");
   if (!user) {
     return next(new AppError("user not found", 404, undefined));
   }
