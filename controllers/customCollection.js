@@ -108,12 +108,17 @@ exports.updateCollection = catchAsync(async (req, res, next) => {
       shareWith: shareWith || [],
     },
     {
-      upsert: true,
-      // new: true,
+      new: true,
     }
-  );
+  ).select("-disabled -created_at -updated_at");
   if (!updatedCollection) {
-    return next(new AppError("Failed to update the collection", 400, null));
+    return next(
+      new AppError(
+        "Failed to update the collection or user does not have permissions",
+        400,
+        null
+      )
+    );
   }
 
   res.status(200).json({

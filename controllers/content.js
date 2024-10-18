@@ -51,7 +51,7 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
     .skip(skip)
     .limit(l_limit)
     .sort("-created_at")
-    .select("-updated_at -__v -created_at -user");
+    .select("-updated_at -__v -created_at");
 
   const total = await Content.countDocuments(filters);
 
