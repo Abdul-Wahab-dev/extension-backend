@@ -79,10 +79,26 @@ exports.getCollectionById = catchAsync(async (req, res, next) => {
   let collection = await CustomCollection.findOne({
     $or: [{ user: req.user._id }, { shareWith: req.user.email }],
     _id: id,
-  }).populate("contents");
+  });
 
   if (!collection)
     return new AppError("no record found with this id", 404, null);
+
+  const contents = await Content.find({
+    disabled: false,
+    collections: collection.id,
+  })
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
+    .sort("-created_at")
+    .select("-updated_at -__v -created_at -hash -collections -shareWith");
+
+  if (!contents || !contents.length) {
+    collection.contents = [];
+  }
+  collection.contents = contents;
   return res.status(200).json({
     collection,
   });

@@ -194,9 +194,14 @@ exports.getAllURLBaseContent = catchAsync(async (req, res, next) => {
 // @desc                    get all the urls from the content
 // @access                  Private
 exports.getAllUrls = catchAsync(async (req, res, next) => {
+  const { _id, email } = req.user;
   const contents = await Content.find({
-    "collections.shareWith": req.user.email,
-  });
-
-  return res.status(200).json({ contents });
+    disabled: false,
+    $or: [{ user: _id }, { shareWith: email }],
+  }).select("url");
+  if (!contents || !contents.length) {
+    return res.status(200).json({ urls: [] });
+  }
+  const urls = contents.map((cont) => cont.url);
+  return res.status(200).json({ urls });
 });
