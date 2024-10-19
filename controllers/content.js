@@ -37,16 +37,21 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
   const l_limit = limit * 1 || 5;
   const skip = (l_page - 1) * l_limit;
   const filters = {
-    user: req.user._id,
     disabled: false,
+    $or: [{ user: req.user._id }, { shareWith: req.user.email }],
   };
   if (domain) {
     filters.domain = domain;
   }
   const contents = await Content.find(filters)
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
     .skip(skip)
     .limit(l_limit)
-    .sort("-created_at");
+    .sort("-created_at")
+    .select("-updated_at -__v -created_at");
 
   const total = await Content.countDocuments(filters);
 
@@ -66,7 +71,7 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
 // @desc                    update content
 // @access                  Private
 exports.updateContent = catchAsync(async (req, res, next) => {
-  const { content, collections, hash } = req.body;
+  const { content, collections, hash, shareWith } = req.body;
   const { id } = req.params;
 
   const updatedContent = await Content.findOneAndUpdate(
@@ -78,6 +83,7 @@ exports.updateContent = catchAsync(async (req, res, next) => {
       content,
       collections,
       hash,
+      shareWith: shareWith || [],
     },
     {
       upsert: true,
@@ -103,9 +109,15 @@ exports.deleteContent = catchAsync(async (req, res, next) => {
       new AppError("Unique is required to delete the content", 400, null)
     );
   }
-  const updatedContent = await Content.findByIdAndUpdate(id, {
-    disabled: true,
-  });
+  const updatedContent = await Content.findOneAndUpdate(
+    {
+      _id: id,
+      user: req.user.id,
+    },
+    {
+      disabled: true,
+    }
+  );
   if (!updatedContent) {
     return next(new AppError("Failed to update the content", 400, null));
   }
@@ -122,7 +134,7 @@ exports.getAllContentDomains = catchAsync(async (req, res, next) => {
   let domains = await Content.aggregate([
     {
       $match: {
-        user: req.user._id,
+        $or: [{ user: req.user._id }, { shareWith: req.user.email }],
         disabled: false,
       },
     },
@@ -161,7 +173,11 @@ exports.getAllURLBaseContent = catchAsync(async (req, res, next) => {
     });
   }
 
-  const contents = await Content.find({ disabled: false, url: url });
+  const contents = await Content.find({
+    disabled: false,
+    url: url,
+    $or: [{ user: req.user._id }, { shareWith: req.user.email }],
+  });
 
   if (!contents || !contents.length) {
     return res.status(200).json({
@@ -172,4 +188,20 @@ exports.getAllURLBaseContent = catchAsync(async (req, res, next) => {
   return res.status(200).json({
     contents,
   });
+});
+
+// @route                   GET /api/v1/content/urls
+// @desc                    get all the urls from the content
+// @access                  Private
+exports.getAllUrls = catchAsync(async (req, res, next) => {
+  const { _id, email } = req.user;
+  const contents = await Content.find({
+    disabled: false,
+    $or: [{ user: _id }, { shareWith: email }],
+  }).select("url");
+  if (!contents || !contents.length) {
+    return res.status(200).json({ urls: [] });
+  }
+  const urls = contents.map((cont) => cont.url);
+  return res.status(200).json({ urls });
 });

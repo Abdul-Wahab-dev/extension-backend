@@ -38,36 +38,24 @@ exports.getAllCollections = catchAsync(async (req, res, next) => {
   const l_limit = limit * 1 || 5;
   const skip = (l_page - 1) * l_limit;
   let collections = null;
-  if (domain)
-    collections = await CustomCollection.find({
-      sites: domain,
-      user: req.user._id,
-      disabled: false,
+  const filters = {
+    disabled: false,
+    $or: [{ user: req.user._id }, { shareWith: req.user.email }],
+  };
+  if (domain) filters.sites = domain;
+
+  collections = await CustomCollection.find({ ...filters })
+    .populate({
+      path: "sharedBy",
+      select: "name email",
     })
-      .skip(skip)
-      .limit(l_limit)
-      .sort("-created_at");
-  else
-    collections = await CustomCollection.find({
-      user: req.user._id,
-      disabled: false,
-    })
-      .skip(skip)
-      .limit(l_limit)
-      .sort("-created_at");
+    .skip(skip)
+    .limit(l_limit)
+    .sort("-created_at");
 
   let total = 0;
-  if (domain)
-    total = await CustomCollection.countDocuments({
-      sites: domain,
-      user: req.user._id,
-      disabled: false,
-    });
-  else
-    total = await CustomCollection.countDocuments({
-      user: req.user._id,
-      disabled: false,
-    });
+
+  total = await CustomCollection.countDocuments({ ...filters });
 
   if (!collections) {
     return res.status(200).json({
@@ -89,12 +77,28 @@ exports.getCollectionById = catchAsync(async (req, res, next) => {
   if (!id) return new AppError("unique id is required", 400, null);
 
   let collection = await CustomCollection.findOne({
-    user: req.user._id,
+    $or: [{ user: req.user._id }, { shareWith: req.user.email }],
     _id: id,
-  }).populate("contents");
+  });
 
   if (!collection)
     return new AppError("no record found with this id", 404, null);
+
+  const contents = await Content.find({
+    disabled: false,
+    collections: collection.id,
+  })
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
+    .sort("-created_at")
+    .select("-updated_at -__v -created_at -hash -collections -shareWith");
+
+  if (!contents || !contents.length) {
+    collection.contents = [];
+  }
+  collection.contents = contents;
   return res.status(200).json({
     collection,
   });
@@ -104,25 +108,33 @@ exports.getCollectionById = catchAsync(async (req, res, next) => {
 // @desc                    update collection
 // @access                  Private
 exports.updateCollection = catchAsync(async (req, res, next) => {
-  const { title, domains } = req.body;
+  const { title, domains, shareWith } = req.body;
   const { id } = req.params;
-
+  console.log(title, "title");
+  console.log(domains, "title");
+  console.log(shareWith, "title");
   const updatedCollection = await CustomCollection.findOneAndUpdate(
     {
       _id: id,
       user: req.user.id,
     },
     {
-      sites: domains,
-      title,
+      sites: domains || [],
+      title: title || "",
+      shareWith: shareWith || [],
     },
     {
-      upsert: true,
       new: true,
     }
-  );
+  ).select("-disabled -created_at -updated_at");
   if (!updatedCollection) {
-    return next(new AppError("Failed to update the collection", 400, null));
+    return next(
+      new AppError(
+        "Failed to update the collection or user does not have permissions",
+        400,
+        null
+      )
+    );
   }
 
   res.status(200).json({
@@ -140,9 +152,12 @@ exports.deleteCollection = catchAsync(async (req, res, next) => {
       new AppError("Unique is required to delete the collection", 400, null)
     );
   }
-  const updatedContent = await CustomCollection.findByIdAndUpdate(id, {
-    disabled: true,
-  });
+  const updatedContent = await CustomCollection.findOneAndUpdate(
+    { _id: id, user: req.user._id },
+    {
+      disabled: true,
+    }
+  );
   if (!updatedContent) {
     return next(new AppError("Failed to update the content", 400, null));
   }
