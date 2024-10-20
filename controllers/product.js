@@ -18,12 +18,7 @@ exports.getProductList = catchAsync(async (req, res) => {
   //   "prod_OxdzjNsZB6HwpG",
   // ]
   const products = await stripe.products.list({
-    ids: [
-      "prod_OxdiqnK6N9bRdw",
-      "prod_OxdpOrQHJKOYJC",
-      "prod_OxdtKi1rui9Fft",
-      "prod_OxdzjNsZB6HwpG",
-    ],
+    ids: ["prod_OxdtKi1rui9Fft", "prod_OxdzjNsZB6HwpG"],
     expand: ["data.default_price"],
   });
   if (!products) {

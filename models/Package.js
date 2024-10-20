@@ -21,8 +21,9 @@ const paymentSchema = new Schema(
       type: Number,
       required: [true, "Collection limit is required"],
     },
-    planId: {
-      type: String,
+    shareWith: {
+      type: Number,
+      required: [true, "share with min 1 is required"],
     },
     subEndDate: {
       type: String,
