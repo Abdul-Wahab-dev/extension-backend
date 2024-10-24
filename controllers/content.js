@@ -1,6 +1,7 @@
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const { Content } = require("../models/Content");
+const { Package } = require("../models/Package");
 
 // @route                   POST /api/v1/content
 // @desc                    create content
@@ -22,6 +23,16 @@ exports.createContent = catchAsync(async (req, res, next) => {
     return next(new AppError("Failed to create the new content", 400, null));
   }
 
+  await Package.updateOne(
+    {
+      user: req.user._id,
+    },
+    {
+      $inc: {
+        contentLimit: -1,
+      },
+    }
+  );
   res.status(201).json({
     content: newContent,
   });

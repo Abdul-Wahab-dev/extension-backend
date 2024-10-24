@@ -225,6 +225,7 @@ exports.webook = async (req, res) => {
         );
 
         const plan = subscription.plan;
+        const metaData = subscription.plan.product.metadata || {};
         const user = await User.findOne({ customerId: subscription.customer });
         if (user) {
           // update the user package
@@ -239,7 +240,9 @@ exports.webook = async (req, res) => {
                 plan: plan.product.name ?? "ERROR",
                 status: subscription.status,
                 subEndDate: `${endDate}`,
-                contentLimit: 40,
+                contentLimit: parseInt(metaData.contentLimit || "0"),
+                collectionLimit: parseInt(metaData.collectionLimit || "0"),
+                shareWith: parseInt(metaData.shareWith || "0"),
                 planId: plan.id ?? "",
               }
             );

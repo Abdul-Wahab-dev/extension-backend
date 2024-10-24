@@ -47,7 +47,14 @@ exports.signup = catchAsync(async (req, res, next) => {
   if (!user) {
     throw new AppError("Failed to create a user", 400, null);
   }
-
+  await Package.create({
+    user: user._id,
+    contentLimit: 15,
+    collectionLimit: 3,
+    shareWith: 1,
+    plan: "Basic",
+    status: "active",
+  });
   res.status(201).json({
     user,
   });
@@ -150,6 +157,14 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
       email,
       name: firstName + " " + lastName,
       customerId: customer.id,
+    });
+    await Package.create({
+      user: user._id,
+      contentLimit: 15,
+      collectionLimit: 3,
+      shareWith: 1,
+      plan: "Basic",
+      status: "active",
     });
     // sending welcome email
   }
@@ -327,9 +342,11 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
   }
   const totalContent = await Content.countDocuments({
     user: req.user._id,
+    disabled: false,
   });
   const totalCollection = await CustomCollection.countDocuments({
     user: req.user._id,
+    disabled: false,
   });
   const package = await Package.findOne({
     user: req.user._id,
@@ -598,3 +615,56 @@ exports.userLogout = catchAsync(async (req, res) => {
 //     return res.status(401).send("Unauthorized");
 //   }
 // };
+
+// middleWare
+exports.checkLimit = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+
+  const userPackage = await Package.findOne({
+    user: _id,
+  });
+
+  if (!userPackage) {
+    return res
+      .status(400)
+      .json({ message: "You have reached you limit, Please update your plan" });
+  }
+  if (userPackage.status !== "active") {
+    return res
+      .status(400)
+      .json({ message: "Please update you subscription plan" });
+  }
+
+  if (req.baseUrl == "/api/v1/content" && req.method === "POST") {
+    if (userPackage.contentLimit === 0) {
+      return res
+        .status(400)
+        .json({ message: "You have reached your content limit" });
+    }
+  }
+
+  if (req.baseUrl == "/api/v1/collection" && req.method === "POST") {
+    if (userPackage.collectionLimit === 0) {
+      return res
+        .status(400)
+        .json({ message: "You have reached your collection limit" });
+    }
+  }
+
+  if (
+    (req.baseUrl.includes("/api/v1/collection") ||
+      req.baseUrl.includes("/api/v1/content")) &&
+    req.method === "PUT"
+  ) {
+    const { shareWith } = req.body;
+    if (shareWith && shareWith.length) {
+      if (shareWith.length > userPackage.shareWith) {
+        return res.status(400).json({
+          message: `you can share with upto ${userPackage.shareWith}`,
+        });
+      }
+    }
+  }
+
+  next();
+});
