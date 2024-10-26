@@ -9,6 +9,10 @@ const { Package } = require("../models/Package");
 exports.createNote = catchAsync(async (req, res, next) => {
   const { title, collections, shareWith, description, url, domain } = req.body;
 
+  if (!title || !url || !domain) {
+    throw new AppError("title is required", 400, null);
+  }
+
   const note = await Note.create({
     title,
     collections: collections || [],
@@ -33,7 +37,8 @@ exports.createNote = catchAsync(async (req, res, next) => {
       },
     }
   );
-  res.status(201).json({
+  delete note.disabled;
+  delete res.status(201).json({
     note,
   });
 });
@@ -62,7 +67,7 @@ exports.getAllNote = catchAsync(async (req, res, next) => {
     .skip(skip)
     .limit(l_limit)
     .sort("-created_at")
-    .select("-updated_at -__v -created_at");
+    .select("-updated_at -__v -created_at -disabled");
 
   const total = await Note.countDocuments(filters);
 
@@ -100,7 +105,7 @@ exports.updateNote = catchAsync(async (req, res, next) => {
       upsert: true,
       new: true,
     }
-  );
+  ).select("-updated_at -__v -created_at -disabled");
   if (!updatedNote) {
     return next(new AppError("Failed to update the content", 400, null));
   }
