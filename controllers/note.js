@@ -38,8 +38,14 @@ exports.createNote = catchAsync(async (req, res, next) => {
     }
   );
   delete note.disabled;
-  delete res.status(201).json({
-    note,
+  const newNote = await Note.findById(note._id)
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
+    .select("-updated_at -__v -created_at -disabled");
+  res.status(201).json({
+    note: newNote,
   });
 });
 
@@ -90,16 +96,31 @@ exports.updateNote = catchAsync(async (req, res, next) => {
   const { title, description, collections, shareWith } = req.body;
   const { id } = req.params;
 
+  if (!id) {
+    throw new AppError("invalid params");
+  }
+  const note = await Note.findById(id);
+  if (!note) {
+    throw new AppError("invalid params");
+  }
+
+  const updatedNoteObj = {
+    title,
+    description,
+  };
+
+  if (note.user == req.user._id) {
+    updatedNoteObj.collections = collections || [];
+    updatedNoteObj.shareWith = shareWith || [];
+  }
+
   const updatedNote = await Note.findOneAndUpdate(
     {
       _id: id,
       $or: [{ user: req.user._id }, { shareWith: req.user.email }],
     },
     {
-      title,
-      description,
-      collections: collections || [],
-      shareWith: shareWith || [],
+      ...updatedNoteObj,
     },
     {
       upsert: true,
