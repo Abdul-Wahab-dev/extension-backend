@@ -21,6 +21,10 @@ const paymentSchema = new Schema(
       type: Number,
       required: [true, "Collection limit is required"],
     },
+    noteLimit: {
+      type: Number,
+      required: [true, "Collection limit is required"],
+    },
     shareWith: {
       type: Number,
       required: [true, "share with min 1 is required"],

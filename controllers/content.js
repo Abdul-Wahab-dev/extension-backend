@@ -2,6 +2,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const { Content } = require("../models/Content");
 const { Package } = require("../models/Package");
+const { Note } = require("../models/Note");
 
 // @route                   POST /api/v1/content
 // @desc                    create content
@@ -210,9 +211,18 @@ exports.getAllUrls = catchAsync(async (req, res, next) => {
     disabled: false,
     $or: [{ user: _id }, { shareWith: email }],
   }).select("url");
-  if (!contents || !contents.length) {
+
+  const notes = await Note.find({
+    disabled: false,
+    $or: [{ user: _id }, { shareWith: email }],
+  }).select("url");
+
+  let urls = [
+    ...contents.map((cont) => cont.url),
+    ...notes.map((note) => note.url),
+  ];
+  if (!urls || !urls.length) {
     return res.status(200).json({ urls: [] });
   }
-  const urls = contents.map((cont) => cont.url);
   return res.status(200).json({ urls });
 });

@@ -24,6 +24,7 @@ const packageRouter = require("./routes/package");
 const webhookRouter = require("./routes/webhook");
 const billingPortalRouter = require("./routes/billingPortal");
 const contactRouter = require("./routes/contact");
+const noteRouter = require("./routes/note");
 // 1) GLOBAL MIDDLLEWARES
 // set security HTTP headers
 // app.use(
@@ -87,6 +88,7 @@ app.get("/api/v1/health", (req, res) => {
 });
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/content", contentRouter);
+app.use("/api/v1/note", noteRouter);
 app.use("/api/v1/collection", customCollectionRouter);
 app.use("/api/v1/setting", settingRoutes);
 app.use("/api/v1/product", productRouter);
