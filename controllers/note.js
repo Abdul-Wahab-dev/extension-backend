@@ -200,7 +200,10 @@ exports.getAllNoteDomains = catchAsync(async (req, res, next) => {
 // @desc                    get all note that has the url
 // @access                  Private
 exports.getAllURLBaseNotes = catchAsync(async (req, res, next) => {
-  const { url } = req.query;
+  const { url, page, limit } = req.query;
+  const l_page = page * 1 || 1;
+  const l_limit = limit * 1 || 5;
+  const skip = (l_page - 1) * l_limit;
 
   if (!url) {
     return res.status(200).json({
@@ -212,15 +215,25 @@ exports.getAllURLBaseNotes = catchAsync(async (req, res, next) => {
     disabled: false,
     url: url,
     $or: [{ user: req.user._id }, { shareWith: req.user.email }],
+  })
+    .skip(skip)
+    .limit(l_limit);
+
+  const total = await Note.countDocuments({
+    disabled: false,
+    url: url,
+    $or: [{ user: req.user._id }, { shareWith: req.user.email }],
   });
 
   if (!notes || !notes.length) {
     return res.status(200).json({
       notes: [],
+      total: 0,
     });
   }
 
   return res.status(200).json({
     notes,
+    total,
   });
 });

@@ -83,7 +83,7 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
 // @desc                    update content
 // @access                  Private
 exports.updateContent = catchAsync(async (req, res, next) => {
-  const { content, collections, hash, shareWith } = req.body;
+  const { collections, shareWith } = req.body;
   const { id } = req.params;
 
   const updatedContent = await Content.findOneAndUpdate(
@@ -92,9 +92,7 @@ exports.updateContent = catchAsync(async (req, res, next) => {
       user: req.user.id,
     },
     {
-      content,
       collections,
-      hash,
       shareWith: shareWith || [],
     },
     {
@@ -177,8 +175,10 @@ exports.getAllContentDomains = catchAsync(async (req, res, next) => {
 // @desc                    get all content that has the url
 // @access                  Private
 exports.getAllURLBaseContent = catchAsync(async (req, res, next) => {
-  const { url } = req.query;
-
+  const { url, page, limit } = req.query;
+  const l_page = page * 1 || 1;
+  const l_limit = limit * 1 || 5;
+  const skip = (l_page - 1) * l_limit;
   if (!url) {
     return res.status(200).json({
       contents: [],
@@ -189,16 +189,24 @@ exports.getAllURLBaseContent = catchAsync(async (req, res, next) => {
     disabled: false,
     url: url,
     $or: [{ user: req.user._id }, { shareWith: req.user.email }],
+  })
+    .skip(skip)
+    .limit(l_limit);
+  const total = await Content.countDocuments({
+    disabled: false,
+    url: url,
+    $or: [{ user: req.user._id }, { shareWith: req.user.email }],
   });
-
   if (!contents || !contents.length) {
     return res.status(200).json({
       contents: [],
+      total: 0,
     });
   }
 
   return res.status(200).json({
     contents,
+    total,
   });
 });
 
