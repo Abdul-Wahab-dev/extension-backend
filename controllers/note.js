@@ -27,7 +27,7 @@ exports.createNote = catchAsync(async (req, res, next) => {
     return next(new AppError("Failed to create the new content", 400, null));
   }
 
-  await Package.updateOne(
+  Package.updateOne(
     {
       user: req.user._id,
     },

@@ -7,7 +7,7 @@ const { Content } = require("../models/Content");
 // @desc                    create collection
 // @access                  Private
 exports.createCollection = catchAsync(async (req, res, next) => {
-  const { title, domains } = req.body;
+  const { title } = req.body;
 
   if (!title) {
     return next(
@@ -16,7 +16,7 @@ exports.createCollection = catchAsync(async (req, res, next) => {
   }
   const newCollection = await CustomCollection.create({
     title,
-    sites: domains,
+    sites: [],
     user: req.user._id,
   });
 
@@ -24,7 +24,7 @@ exports.createCollection = catchAsync(async (req, res, next) => {
     return next(new AppError("Failed to create the new content", 400, null));
   }
 
-  await Package.updateOne(
+  Package.updateOne(
     {
       user: req.user._id,
     },
@@ -119,18 +119,16 @@ exports.getCollectionById = catchAsync(async (req, res, next) => {
 // @desc                    update collection
 // @access                  Private
 exports.updateCollection = catchAsync(async (req, res, next) => {
-  const { title, domains, shareWith } = req.body;
+  const { title, shareWith } = req.body;
   const { id } = req.params;
-  console.log(title, "title");
-  console.log(domains, "title");
-  console.log(shareWith, "title");
+
   const updatedCollection = await CustomCollection.findOneAndUpdate(
     {
       _id: id,
       user: req.user.id,
     },
     {
-      sites: domains || [],
+      sites: [],
       title: title || "",
       shareWith: shareWith || [],
     },
