@@ -49,8 +49,9 @@ exports.signup = catchAsync(async (req, res, next) => {
   }
   await Package.create({
     user: user._id,
-    contentLimit: 15,
+    contentLimit: 10,
     collectionLimit: 3,
+    noteLimit: 10,
     shareWith: 1,
     plan: "Basic",
     status: "active",
@@ -160,8 +161,9 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
     });
     await Package.create({
       user: user._id,
-      contentLimit: 15,
+      contentLimit: 10,
       collectionLimit: 3,
+      noteLimit: 10,
       shareWith: 1,
       plan: "Basic",
       status: "active",
@@ -630,9 +632,10 @@ exports.checkLimit = catchAsync(async (req, res, next) => {
       .json({ message: "You have reached you limit, Please update your plan" });
   }
   if (userPackage.status !== "active") {
-    return res
-      .status(400)
-      .json({ message: "Please update you subscription plan" });
+    return res.status(400).json({
+      message:
+        "You have reached you limit, Please update you subscription plan",
+    });
   }
 
   if (req.baseUrl == "/api/v1/content" && req.method === "POST") {
@@ -650,10 +653,18 @@ exports.checkLimit = catchAsync(async (req, res, next) => {
         .json({ message: "You have reached your collection limit" });
     }
   }
+  if (req.baseUrl == "/api/v1/note" && req.method === "POST") {
+    if (userPackage.noteLimit === 0) {
+      return res
+        .status(400)
+        .json({ message: "You have reached your note limit" });
+    }
+  }
 
   if (
     (req.baseUrl.includes("/api/v1/collection") ||
-      req.baseUrl.includes("/api/v1/content")) &&
+      req.baseUrl.includes("/api/v1/content") ||
+      req.baseUrl.includes("/api/v1/note")) &&
     req.method === "PUT"
   ) {
     const { shareWith } = req.body;
