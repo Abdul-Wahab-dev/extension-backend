@@ -47,7 +47,7 @@ app.use(
       "http://flexisaves.toolefy.com",
       "https://flexisaves.web.toolefy.com",
       "https://proxy.toolefy.com",
-      "http://3.141.101.121",
+      "http://3.139.83.200",
     ],
     credentials: true,
   })
