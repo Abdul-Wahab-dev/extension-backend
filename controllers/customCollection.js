@@ -2,6 +2,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const { CustomCollection } = require("../models/CustomCollection");
 const { Content } = require("../models/Content");
+const { Note } = require("../models/Note");
 
 // @route                   POST /api/v1/collection
 // @desc                    create collection
@@ -106,12 +107,28 @@ exports.getCollectionById = catchAsync(async (req, res, next) => {
     .sort("-created_at")
     .select("-updated_at -__v -created_at -hash -collections -shareWith");
 
+  const notes = await Note.find({
+    disabled: false,
+    collections: collection.id,
+  })
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
+    .sort("-created_at")
+    .select("-updated_at -__v -created_at -hash -collections -shareWith");
+
   if (!contents || !contents.length) {
     collection.contents = [];
   }
-  collection.contents = contents;
+
+  if (!notes || !notes.length) {
+    collection.notes = [];
+  }
   return res.status(200).json({
     collection,
+    notes: notes || [],
+    contents: contents || [],
   });
 });
 
