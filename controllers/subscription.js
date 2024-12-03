@@ -28,8 +28,8 @@ exports.create = catchAsync(async (req, res) => {
         quantity: 1,
       },
     ],
-    success_url: "http://localhost:3000/success",
-    cancel_url: "http://localhost:3000/failed",
+    success_url: "https://flexisaves.toolefy.com/success",
+    cancel_url: "https://flexisaves.toolefy.com/failed",
     expand: ["subscription"],
     metadata: {
       email,
