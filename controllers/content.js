@@ -83,9 +83,9 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
 // @desc                    update content
 // @access                  Private
 exports.updateContent = catchAsync(async (req, res, next) => {
-  const { collections, shareWith } = req.body;
   const { id } = req.params;
-
+  console.log(req.body, "req.bidy", id);
+  const { collections, shareWith } = req.body;
   const updatedContent = await Content.findOneAndUpdate(
     {
       _id: id,
@@ -99,7 +99,12 @@ exports.updateContent = catchAsync(async (req, res, next) => {
       upsert: true,
       new: true,
     }
-  );
+  )
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
+    .select("-updated_at -__v -created_at");
   if (!updatedContent) {
     return next(new AppError("Failed to update the content", 400, null));
   }

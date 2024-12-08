@@ -42,12 +42,10 @@ const noteRouter = require("./routes/note");
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
       "https://flexisaves.toolefy.com",
       "http://flexisaves.toolefy.com",
-      "https://flexisaves.web.toolefy.com",
-      "https://proxy.toolefy.com",
-      "http://3.139.83.200",
+      "https://flexisaves.com",
+      "https://www.flexisaves.com",
     ],
     credentials: true,
   })

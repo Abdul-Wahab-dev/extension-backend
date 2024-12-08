@@ -109,11 +109,11 @@ exports.updateNote = catchAsync(async (req, res, next) => {
     description,
   };
 
-  if (note.user == req.user._id) {
+  if (note.user.equals(req.user._id)) {
     updatedNoteObj.collections = collections || [];
     updatedNoteObj.shareWith = shareWith || [];
   }
-
+  console.log(updatedNoteObj, "updatedNoteObj");
   const updatedNote = await Note.findOneAndUpdate(
     {
       _id: id,
@@ -126,11 +126,16 @@ exports.updateNote = catchAsync(async (req, res, next) => {
       upsert: true,
       new: true,
     }
-  ).select("-updated_at -__v -created_at -disabled");
+  )
+    .populate({
+      path: "sharedBy",
+      select: "name email",
+    })
+    .select("-updated_at -__v -created_at -disabled");
   if (!updatedNote) {
     return next(new AppError("Failed to update the content", 400, null));
   }
-
+  console.log(updatedNote, "updatedNote");
   res.status(200).json({
     note: updatedNote,
   });

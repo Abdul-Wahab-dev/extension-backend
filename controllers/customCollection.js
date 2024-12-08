@@ -55,15 +55,23 @@ exports.getAllCollections = catchAsync(async (req, res, next) => {
     $or: [{ user: req.user._id }, { shareWith: req.user.email }],
   };
   if (domain) filters.sites = domain;
-
-  collections = await CustomCollection.find({ ...filters })
-    .populate({
-      path: "sharedBy",
-      select: "name email",
-    })
-    .skip(skip)
-    .limit(l_limit)
-    .sort("-created_at");
+  if (page) {
+    collections = await CustomCollection.find({ ...filters })
+      .populate({
+        path: "sharedBy",
+        select: "name email",
+      })
+      .skip(skip)
+      .limit(l_limit)
+      .sort("-created_at");
+  } else {
+    collections = await CustomCollection.find({ ...filters })
+      .populate({
+        path: "sharedBy",
+        select: "name email",
+      })
+      .sort("-created_at");
+  }
 
   let total = 0;
 
