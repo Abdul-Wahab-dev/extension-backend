@@ -49,10 +49,10 @@ exports.signup = catchAsync(async (req, res, next) => {
   }
   await Package.create({
     user: user._id,
-    contentLimit: 10,
-    collectionLimit: 3,
-    noteLimit: 10,
-    shareWith: 1,
+    contentLimit: 60,
+    collectionLimit: 10,
+    noteLimit: 30,
+    shareWith: 2,
     plan: "Basic",
     status: "active",
   });
@@ -161,10 +161,10 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
     });
     await Package.create({
       user: user._id,
-      contentLimit: 10,
-      collectionLimit: 3,
-      noteLimit: 10,
-      shareWith: 1,
+      contentLimit: 60,
+      collectionLimit: 10,
+      noteLimit: 30,
+      shareWith: 2,
       plan: "Basic",
       status: "active",
     });
@@ -627,14 +627,11 @@ exports.checkLimit = catchAsync(async (req, res, next) => {
   });
 
   if (!userPackage) {
-    return res
-      .status(400)
-      .json({ message: "You have reached you limit, Please update your plan" });
+    return res.status(400).json({ message: "You have reached you limit" });
   }
   if (userPackage.status !== "active") {
     return res.status(400).json({
-      message:
-        "You have reached you limit, Please update you subscription plan",
+      message: "You have reached your limit",
     });
   }
 

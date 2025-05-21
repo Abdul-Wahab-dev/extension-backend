@@ -84,7 +84,7 @@ exports.getAllContent = catchAsync(async (req, res, next) => {
 // @access                  Private
 exports.updateContent = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  console.log(req.body, "req.bidy", id);
+
   const { collections, shareWith } = req.body;
   const updatedContent = await Content.findOneAndUpdate(
     {
