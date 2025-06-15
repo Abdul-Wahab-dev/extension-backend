@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const { Content } = require("../models/Content");
 const { CustomCollection } = require("../models/CustomCollection");
-const { createCustomerHelper } = require("./subscription");
+// const { createCustomerHelper } = require("./subscription");
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
@@ -37,12 +37,12 @@ exports.signup = catchAsync(async (req, res, next) => {
       new AppError("User already exist with this E-mail", 400, undefined)
     );
   }
-  const customer = await createCustomerHelper(email);
+  // const customer = await createCustomerHelper(email);
   const user = await User.create({
     email,
     name,
     password,
-    customerId: customer.id,
+    // customerId: customer.id,
   });
   if (!user) {
     throw new AppError("Failed to create a user", 400, null);
@@ -153,11 +153,11 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
   });
 
   if (!user) {
-    const customer = await createCustomerHelper(email);
+    // const customer = await createCustomerHelper(email);
     user = await User.create({
       email,
       name: firstName + " " + lastName,
-      customerId: customer.id,
+      // customerId: customer.id,
     });
     await Package.create({
       user: user._id,
