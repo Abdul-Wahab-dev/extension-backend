@@ -64,14 +64,14 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 app.use(compression());
-app.use("/api", express.json());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // data sanitization  against NoSQL query injection
 app.use(mongoSanitize());
 // data sanitization  against xss
 app.use((req, res, next) => {
-  console.log(req.path, "req.path");
+  console.log(req.path, "req.path", req.headers);
   if (req.body) {
     const tempBody = JSON.stringify(req.body).replace(/</g, "{{}}");
     req.body = JSON.parse(tempBody);
