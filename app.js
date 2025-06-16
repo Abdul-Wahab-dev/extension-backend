@@ -71,6 +71,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize());
 // data sanitization  against xss
 app.use((req, res, next) => {
+  console.log(req.path, "req.path");
   if (req.body) {
     const tempBody = JSON.stringify(req.body).replace(/</g, "{{}}");
     req.body = JSON.parse(tempBody);
