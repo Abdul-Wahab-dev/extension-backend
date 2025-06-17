@@ -76,6 +76,7 @@ app.use((req, res, next) => {
     const tempBody = JSON.stringify(req.body).replace(/</g, "{{}}");
     req.body = JSON.parse(tempBody);
   }
+  console.log("called after");
   next();
 });
 app.use(xss());

@@ -94,6 +94,7 @@ exports.login = catchAsync(async (req, res, next) => {
     serialize("authorization", `Bearer ${token}`, {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
+      path: "/",
       domain: ".flexisaves.com",
     })
   );
@@ -185,6 +186,7 @@ exports.googleAuthCallback = catchAsync(async (req, res) => {
     serialize("authorization", `Bearer ${token}`, {
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7,
+      path: "/",
       domain: ".flexisaves.com",
     })
   );
@@ -593,6 +595,7 @@ exports.userLogout = catchAsync(async (req, res) => {
     serialize("authorization", ``, {
       httpOnly: true,
       maxAge: 0,
+      path: "/",
       domain: ".flexisaves.com",
     })
   );
