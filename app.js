@@ -66,6 +66,7 @@ app.use(limiter);
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set("trust proxy", 1);
 
 // data sanitization  against NoSQL query injection
 app.use(mongoSanitize());
@@ -86,6 +87,8 @@ app.use(hpp());
 app.get("/api/v1/health", (req, res) => {
   res.send("ok");
 });
+app.get("/ip", (request, response) => response.send(request.ip));
+
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/content", contentRouter);
 app.use("/api/v1/note", noteRouter);
