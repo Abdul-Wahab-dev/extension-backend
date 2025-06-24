@@ -68,6 +68,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 1) check if email and password exist
   if (!email || !password) {
+    console.log("email and password is required!");
     return next(
       new AppError("email and password is required!", 400, undefined)
     );
@@ -75,6 +76,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // 2) check if user exist and password is correct
   const user = await User.findOne({ email }).select("+password");
   if (!user || !(await user.correctPassword(password, user.password))) {
+    console.log("username or password incorrect!");
     return next(
       new AppError("username or password incorrect!", 400, undefined)
     );

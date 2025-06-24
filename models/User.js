@@ -18,7 +18,10 @@ const userSchema = new Schema({
     lowercase: true,
     validate: [validator.isEmail, "please provide valid email"],
   },
-  password: String,
+  password: {
+    type: String,
+    select: false,
+  },
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
@@ -37,6 +40,7 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
     required: true,
+    select: false,
   },
   customerId: {
     type: String,

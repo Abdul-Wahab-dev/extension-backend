@@ -46,6 +46,7 @@ app.use(
       "http://flexisaves.toolefy.com",
       "https://flexisaves.com",
       "https://www.flexisaves.com",
+      "http://localhost:3000",
     ],
     credentials: true,
   })
@@ -72,12 +73,10 @@ app.set("trust proxy", 1);
 app.use(mongoSanitize());
 // data sanitization  against xss
 app.use((req, res, next) => {
-  console.log(req.path, "req.path", req.headers);
   if (req.body) {
     const tempBody = JSON.stringify(req.body).replace(/</g, "{{}}");
     req.body = JSON.parse(tempBody);
   }
-  console.log("called after");
   next();
 });
 app.use(xss());
