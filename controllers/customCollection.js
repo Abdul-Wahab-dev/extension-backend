@@ -25,16 +25,16 @@ exports.createCollection = catchAsync(async (req, res, next) => {
     return next(new AppError("Failed to create the new content", 400, null));
   }
 
-  Package.updateOne(
-    {
-      user: req.user._id,
-    },
-    {
-      $inc: {
-        collectionLimit: -1,
-      },
-    }
-  );
+  // Package.updateOne(
+  //   {
+  //     user: req.user._id,
+  //   },
+  //   {
+  //     $inc: {
+  //       collectionLimit: -1,
+  //     },
+  //   }
+  // );
 
   res.status(201).json({
     collection: newCollection,
