@@ -85,6 +85,7 @@ exports.login = catchAsync(async (req, res, next) => {
   // if (!user || user.blocked === true) {
   //   return next(new AppError("user blocked!", 400, undefined));
   // }
+  user.password = undefined; // remove password from user object
   // 4) if everything OK then send token to user
   const token = generateJwtToken(
     { id: user.id, name: user.name, email: user.email },
@@ -231,55 +232,50 @@ const client = new OAuth2Client(
 // @desc                  login with google
 // @access                Public
 exports.loginWithGoogle = catchAsync(async (req, res, next) => {
-  // check token
-  const tokenVerify = await oauthClient.verifyIdToken({
-    idToken: req.body.token,
-    audience:
-      "5328933atg64221001-gefd5asdy234pi11rf25s8tkqd5n7er3phqcuu6fds.apps.googleusercontent.com",
-  });
-
-  if (!tokenVerify) {
-    return next(new AppError("Bad request", 400, undefined));
-  }
-  const { name, email, picture } = tokenVerify.payload;
-
-  // 2) check if user exist and password is correct
-  const user = await User.findOne({ email });
-  if (!user) {
-    return next(
-      new AppError("username or password incorrect!", 400, undefined)
-    );
-  }
-
-  // 4) if everything OK then send token to user
-  const token = generateJwtToken;
-
-  res.status(200).json({
-    status: "success",
-    token,
-  });
+  // // check token
+  // const tokenVerify = await oauthClient.verifyIdToken({
+  //   idToken: req.body.token,
+  //   audience:
+  //     "5328933atg64221001-gefd5asdy234pi11rf25s8tkqd5n7er3phqcuu6fds.apps.googleusercontent.com",
+  // });
+  // if (!tokenVerify) {
+  //   return next(new AppError("Bad request", 400, undefined));
+  // }
+  // const { name, email, picture } = tokenVerify.payload;
+  // // 2) check if user exist and password is correct
+  // const user = await User.findOne({ email });
+  // if (!user) {
+  //   return next(
+  //     new AppError("username or password incorrect!", 400, undefined)
+  //   );
+  // }
+  // // 4) if everything OK then send token to user
+  // const token = generateJwtToken;
+  // res.status(200).json({
+  //   status: "success",
+  //   token,
+  // });
 });
 
 // verift route check token is verify
 exports.verifyGoogleToken = catchAsync(async (req, res, next) => {
   // check token
-  if (!req.body.token) {
-    return next(new AppError("Error in Sign up with google"));
-  }
-  const tokenVerify = await client.verifyIdToken({
-    idToken: req.body.token,
-    audience:
-      "532893321001-gefd5pi11rf25s8tkqd5n7er3phqcuu6.apps.googleusercontent.com",
-  });
-  // console.log(tokenVerify);
-  if (!tokenVerify) {
-    return next(new AppError("Bad request", 400, undefined));
-  }
-  const { name, email, picture } = tokenVerify.payload;
-
-  req.body.name = name.toLowerCase();
-  req.body.email = email.toLowerCase();
-  next();
+  // if (!req.body.token) {
+  //   return next(new AppError("Error in Sign up with google"));
+  // }
+  // const tokenVerify = await client.verifyIdToken({
+  //   idToken: req.body.token,
+  //   audience:
+  //     "532893321001-gefd5pi11rf25s8tkqd5n7er3phqcuu6.apps.googleusercontent.com",
+  // });
+  // // console.log(tokenVerify);
+  // if (!tokenVerify) {
+  //   return next(new AppError("Bad request", 400, undefined));
+  // }
+  // const { name, email, picture } = tokenVerify.payload;
+  // req.body.name = name.toLowerCase();
+  // req.body.email = email.toLowerCase();
+  // next();
 });
 // Protected Route
 
